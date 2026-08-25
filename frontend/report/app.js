@@ -87,6 +87,21 @@
   const exportWord = document.getElementById("export-word");
   const exportDetailed = document.getElementById("export-detailed");
   const goHome = document.getElementById("go-home");
+  const modelSettingsButtons = document.querySelectorAll(".model-settings-button");
+  const modelSettingsDialog = document.getElementById("model-settings-dialog");
+  const modelSettingsForm = document.getElementById("model-settings-form");
+  const modelSettingsClose = document.getElementById("model-settings-close");
+  const modelSettingsStatus = document.getElementById("model-settings-status");
+  const modelSettingsResult = document.getElementById("model-settings-result");
+  const modelProvider = document.getElementById("model-provider");
+  const modelApiKey = document.getElementById("model-api-key");
+  const modelUrl = document.getElementById("model-url");
+  const modelName = document.getElementById("model-name");
+  const modelAdvanced = document.getElementById("model-advanced");
+  const modelSave = document.getElementById("model-save");
+  const modelTest = document.getElementById("model-test");
+  const modelRemoveKey = document.getElementById("model-remove-key");
+  let modelSettings = null;
 
   function el(tag, attrs, children) {
     const node = document.createElement(tag);
@@ -3592,6 +3607,141 @@
       });
   }
 
+  function setModelSettingsBusy(busy) {
+    if (modelSave) modelSave.disabled = busy;
+    if (modelTest) modelTest.disabled = busy;
+    if (modelRemoveKey) modelRemoveKey.disabled = busy;
+  }
+
+  function showModelSettingsResult(message, isError) {
+    if (!modelSettingsResult) return;
+    modelSettingsResult.textContent = message || "";
+    modelSettingsResult.className = "settings-result" + (isError ? " error" : "");
+  }
+
+  function providerDefaults(key) {
+    var providers = (modelSettings && modelSettings.providers) || [];
+    for (var i = 0; i < providers.length; i += 1) {
+      if (providers[i].key === key) return providers[i];
+    }
+    return null;
+  }
+
+  function renderModelSettings(payload) {
+    modelSettings = payload;
+    var connected = !!payload.api_key_set;
+    modelSettingsButtons.forEach(function (button) {
+      button.textContent = connected ? "模型已配置" : "连接模型";
+      button.classList.toggle("connected", connected);
+    });
+    if (!modelSettingsForm) return;
+    modelProvider.value = payload.provider || "openai";
+    modelUrl.value = payload.url || "";
+    modelName.value = payload.model || "";
+    modelApiKey.value = "";
+    modelApiKey.placeholder = connected ? "已保存；留空不会更改" : "粘贴 API Key";
+    modelSettingsStatus.textContent = connected
+      ? "已保存 " + (modelProvider.options[modelProvider.selectedIndex] || {}).text + "；可点“保存并测试”检查连接。"
+      : "尚未连接。选择服务并填写 API Key。";
+    modelSettingsStatus.className = "settings-status" + (connected ? " connected" : "");
+    modelRemoveKey.hidden = !connected;
+    if (payload.provider === "custom") modelAdvanced.open = true;
+  }
+
+  function loadModelSettings() {
+    return readJson("/settings/model").then(function (payload) {
+      renderModelSettings(payload);
+      return payload;
+    });
+  }
+
+  function openModelSettings() {
+    showModelSettingsResult("", false);
+    setModelSettingsBusy(true);
+    loadModelSettings()
+      .then(function () {
+        if (modelSettingsDialog && !modelSettingsDialog.open) modelSettingsDialog.showModal();
+      })
+      .catch(function (error) {
+        showFlash(explainHttpError(error, "没有读到模型设置。"), true);
+      })
+      .then(function () {
+        setModelSettingsBusy(false);
+      });
+  }
+
+  function modelSettingsPayload() {
+    var payload = {
+      provider: modelProvider.value,
+      url: modelUrl.value.trim(),
+      model: modelName.value.trim(),
+    };
+    if (modelApiKey.value.trim()) payload.api_key = modelApiKey.value.trim();
+    return payload;
+  }
+
+  function saveModelSettings(closeWhenDone) {
+    setModelSettingsBusy(true);
+    showModelSettingsResult("正在保存…", false);
+    return writeJson("/settings/model", modelSettingsPayload())
+      .then(function (payload) {
+        renderModelSettings(payload);
+        showModelSettingsResult("已保存。", false);
+        if (closeWhenDone && modelSettingsDialog) {
+          modelSettingsDialog.close();
+          showFlash("模型设置已保存在本机。", false);
+        }
+        return payload;
+      })
+      .catch(function (error) {
+        showModelSettingsResult(explainHttpError(error, "模型设置没有保存。"), true);
+        throw error;
+      })
+      .then(function (payload) {
+        setModelSettingsBusy(false);
+        return payload;
+      }, function (error) {
+        setModelSettingsBusy(false);
+        throw error;
+      });
+  }
+
+  function testModelConnection() {
+    saveModelSettings(false)
+      .then(function () {
+        setModelSettingsBusy(true);
+        showModelSettingsResult("正在连接模型…", false);
+        return writeJson("/settings/model/test", {});
+      })
+      .then(function (payload) {
+        showModelSettingsResult(payload.message || "连接成功。", false);
+      })
+      .catch(function (error) {
+        showModelSettingsResult(explainHttpError(error, "模型没有连上。"), true);
+      })
+      .then(function () {
+        setModelSettingsBusy(false);
+      });
+  }
+
+  function removeModelKey() {
+    if (!window.confirm("删除这台电脑上保存的模型 API Key？")) return;
+    var payload = modelSettingsPayload();
+    payload.clear_api_key = true;
+    setModelSettingsBusy(true);
+    writeJson("/settings/model", payload)
+      .then(function (result) {
+        renderModelSettings(result);
+        showModelSettingsResult("已删除保存的 API Key。", false);
+      })
+      .catch(function (error) {
+        showModelSettingsResult(explainHttpError(error, "密钥没有删除。"), true);
+      })
+      .then(function () {
+        setModelSettingsBusy(false);
+      });
+  }
+
   function initColumnSplit() {
     const root = document.querySelector("main.bench");
     if (!root) return;
@@ -3671,6 +3821,30 @@
   }
 
   goHome.addEventListener("click", showHome);
+  modelSettingsButtons.forEach(function (button) {
+    button.addEventListener("click", openModelSettings);
+  });
+  if (modelSettingsClose) {
+    modelSettingsClose.addEventListener("click", function () {
+      modelSettingsDialog.close();
+    });
+  }
+  if (modelSettingsForm) {
+    modelSettingsForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      saveModelSettings(true).catch(function () { return null; });
+    });
+  }
+  if (modelProvider) {
+    modelProvider.addEventListener("change", function () {
+      var defaults = providerDefaults(modelProvider.value);
+      modelUrl.value = defaults ? defaults.default_url : "";
+      modelName.value = defaults ? defaults.default_model : "";
+      if (modelProvider.value === "custom") modelAdvanced.open = true;
+    });
+  }
+  if (modelTest) modelTest.addEventListener("click", testModelConnection);
+  if (modelRemoveKey) modelRemoveKey.addEventListener("click", removeModelKey);
   exportWord.addEventListener("click", function () {
     downloadWord("word", "已下载整理稿。核验未改。");
   });
@@ -3710,6 +3884,7 @@
   }
 
   initColumnSplit();
+  loadModelSettings().catch(function () { return null; });
   if (projectId) openProject(projectId);
   else showHome();
 })();

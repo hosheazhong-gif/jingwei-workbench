@@ -12,6 +12,7 @@ from app.adapters.http_draft import (
     HttpJsonDraftAdapter,
     parse_draft_proposals,
     resolve_draft_adapter,
+    test_draft_connection,
     _REVISION_PROMPT,
     _user_prompt,
 )
@@ -43,6 +44,28 @@ class FakeResponse:
 
 
 class HttpDraftAdapterTest(unittest.TestCase):
+    def test_connection_check_makes_minimal_request_without_returning_key(self) -> None:
+        captured: dict = {}
+
+        def opener(request, timeout=0):
+            captured["authorization"] = request.headers.get("Authorization")
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            captured["timeout"] = timeout
+            return FakeResponse({"choices": [{"message": {"content": "OK"}}]})
+
+        result = test_draft_connection(
+            environ={
+                "JINGWEI_DRAFT_PROVIDER": "deepseek",
+                "JINGWEI_DRAFT_API_KEY": "sk-connection-test",
+            },
+            opener=opener,
+        )
+        self.assertTrue(result["connected"])
+        self.assertEqual(result["provider"], "deepseek")
+        self.assertEqual(captured["body"]["max_tokens"], 8)
+        self.assertEqual(captured["authorization"], "Bearer sk-connection-test")
+        self.assertNotIn("sk-connection-test", repr(result))
+
     def test_resolve_without_key_stays_unconfigured(self) -> None:
         adapter = resolve_draft_adapter(environ={})
         self.assertIsInstance(adapter, UnconfiguredDraftAdapter)

@@ -59,6 +59,7 @@ def runtime_paths(environ: dict[str, str] | None = None) -> RuntimePaths:
 def prepare_runtime(paths: RuntimePaths) -> SqliteRepository:
     paths.data_dir.mkdir(parents=True, exist_ok=True)
     paths.exports_dir.mkdir(parents=True, exist_ok=True)
+    os.environ["JINGWEI_DATA_DIR"] = str(paths.data_dir)
     load_local_env(paths.data_dir)
     os.environ["JINGWEI_EXPORT_DIR"] = str(paths.exports_dir)
     repository = SqliteRepository(paths.database)
@@ -120,9 +121,31 @@ def run_smoke_test(report_path: Path | None = None) -> dict[str, Any]:
     server.start()
     try:
         with urlopen(server.origin + "/", timeout=10) as response:
-            home_ok = response.status == 200 and "经纬" in response.read().decode("utf-8")
+            home_body = response.read().decode("utf-8")
+            home_ok = (
+                response.status == 200
+                and "经纬" in home_body
+                and "model-settings-dialog" in home_body
+            )
         with urlopen(server.origin + "/templates", timeout=10) as response:
             templates = json.loads(response.read().decode("utf-8"))["templates"]
+        settings_status, settings_saved = _post_json(
+            server.origin + "/settings/model",
+            {
+                "provider": "deepseek",
+                "api_key": "jingwei-package-smoke-key",
+            },
+        )
+        with urlopen(server.origin + "/settings/model", timeout=10) as response:
+            settings_loaded = json.loads(response.read().decode("utf-8"))
+        settings_ok = bool(
+            settings_status == 200
+            and settings_saved.get("api_key_set")
+            and settings_loaded.get("api_key_set")
+            and settings_loaded.get("provider") == "deepseek"
+            and "api_key" not in settings_saved
+            and "api_key" not in settings_loaded
+        )
         create_status, created = _post_json(
             server.origin + "/projects",
             {
@@ -143,6 +166,7 @@ def run_smoke_test(report_path: Path | None = None) -> dict[str, Any]:
             "ok": bool(
                 home_ok
                 and len(templates) == 7
+                and settings_ok
                 and create_status == 201
                 and export_status == 200
                 and saved.is_file()
@@ -150,6 +174,7 @@ def run_smoke_test(report_path: Path | None = None) -> dict[str, Any]:
             ),
             "version": __version__,
             "templates": len(templates),
+            "model_settings": settings_ok,
             "project_id": project_id,
             "database": str(paths.database),
             "word_export": str(saved),

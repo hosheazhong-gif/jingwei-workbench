@@ -24,7 +24,7 @@
 系统要求：Windows 10/11 64 位，以及一个现代浏览器。普通用户不需要安装 Python、Node.js 或数据库。
 
 1. 打开 [Releases](https://github.com/hosheazhong-gif/jingwei-workbench/releases/latest)。
-2. 下载 `Jingwei-Windows-x64-v0.1.0.zip`。
+2. 下载最新的 `Jingwei-Windows-x64-v0.1.1.zip`。
 3. 解压后双击 `Jingwei.exe`。
 4. 经纬会自动打开浏览器；第一次使用时选择“新建题目”。
 
@@ -56,14 +56,13 @@
 
 ## 可选的模型能力
 
-不配置模型也可以使用完整的人工工作流。若要使用“请模型先拟”，在数据目录中新建 `.env`：
+不配置模型也可以使用完整的人工工作流。若要使用“请模型先拟”：
 
-```dotenv
-JINGWEI_DRAFT_PROVIDER=deepseek
-JINGWEI_DRAFT_API_KEY=your-key
-```
+1. 点击首页或工作台右上角的“连接模型”。
+2. 选择 OpenAI、DeepSeek、Kimi、通义千问或智谱 GLM，粘贴对应的 API Key。
+3. 点击“保存并测试”；显示连接成功后即可使用模型按钮。
 
-也支持 `openai`、`moonshot`、`qwen`、`glm` 和自定义兼容接口。密钥只应放在本机 `.env` 或系统环境变量中，不要提交到 Git。
+也可以在“高级设置”中填写自定义的 OpenAI 兼容接口和模型名称。API Key 只保存在本机经纬数据目录，界面和读取接口不会回显；可随时在同一设置页删除。
 
 ## 当前版本的边界
 

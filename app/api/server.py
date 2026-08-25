@@ -100,9 +100,18 @@ from app.projections.templates import build_template_list_projection
 from app.projections.report import build_report_projection, build_review_context
 from app.projections.sources import build_source_list_projection
 from app.projections.workbench import build_workbench_projection
+from app.local_env import load_local_env
+from app.model_settings import (
+    ModelSettingsError,
+    model_settings_root,
+    read_model_settings,
+    save_model_settings,
+)
 
 _PROJECTS_PATH = re.compile(r"^/projects$")
 _TEMPLATES_PATH = re.compile(r"^/templates$")
+_MODEL_SETTINGS_PATH = re.compile(r"^/settings/model$")
+_MODEL_SETTINGS_TEST_PATH = re.compile(r"^/settings/model/test$")
 _PROJECT_ITEM_PATH = re.compile(r"^/projects/([^/]+)$")
 _REPORT_PATH = re.compile(r"^/projects/([^/]+)/report$")
 _WORKBENCH_PATH = re.compile(r"^/projects/([^/]+)/workbench$")
@@ -211,6 +220,12 @@ def dispatch_get(repository: SqliteRepository, path: str) -> tuple[int, dict[str
     if _TEMPLATES_PATH.fullmatch(path):
         return 200, build_template_list_projection()
 
+    if _MODEL_SETTINGS_PATH.fullmatch(path):
+        try:
+            return 200, read_model_settings()
+        except ModelSettingsError as error:
+            return 400, {"error": str(error)}
+
     report_match = _REPORT_PATH.fullmatch(path)
     if report_match:
         project_id = unquote(report_match.group(1))
@@ -273,6 +288,20 @@ def dispatch_get(repository: SqliteRepository, path: str) -> tuple[int, dict[str
 def dispatch_post(
     repository: SqliteRepository, path: str, payload: dict[str, Any]
 ) -> tuple[int, dict[str, Any]]:
+    if _MODEL_SETTINGS_PATH.fullmatch(path):
+        try:
+            return 200, save_model_settings(
+                model_settings_root(repository), payload
+            )
+        except ModelSettingsError as error:
+            return 400, {"error": str(error)}
+    if _MODEL_SETTINGS_TEST_PATH.fullmatch(path):
+        from app.adapters.http_draft import test_draft_connection
+
+        try:
+            return 200, test_draft_connection()
+        except DraftSuggestionError as error:
+            return 400, {"error": str(error)}
     if _PROJECTS_PATH.fullmatch(path):
         try:
             result = create_project(
@@ -1004,7 +1033,8 @@ def dispatch_multipart_post(
 
 def is_readonly_route(path: str) -> bool:
     return bool(
-        _REPORT_PATH.fullmatch(path)
+        _MODEL_SETTINGS_PATH.fullmatch(path)
+        or _REPORT_PATH.fullmatch(path)
         or _WORKBENCH_PATH.fullmatch(path)
         or _REVIEW_PATH.fullmatch(path)
         or _IMPACT_PATH.fullmatch(path)
@@ -1187,6 +1217,7 @@ class ReadOnlyHttpServer:
             raise ValueError(
                 "经纬是本机工作台，只能监听 IPv4 回环地址或 localhost。"
             )
+        load_local_env(model_settings_root(repository))
         handler = type(
             "BoundReadOnlyApiHandler",
             (ReadOnlyApiHandler,),
@@ -1260,6 +1291,9 @@ def serve_readonly_api(
                     "GET /projects/{id}/report",
                     "GET /projects/{id}/workbench",
                     "GET /templates",
+                    "GET /settings/model",
+                    "POST /settings/model",
+                    "POST /settings/model/test",
                     "POST /projects/{id}/brief",
                     "POST /research-questions/{id}/progress",
                     "POST /research-questions/{id}/target-block",

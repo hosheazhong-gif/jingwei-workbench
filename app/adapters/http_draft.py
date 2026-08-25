@@ -555,6 +555,31 @@ def resolve_draft_adapter(
     )
 
 
+def test_draft_connection(
+    environ: Mapping[str, str] | None = None,
+    opener: Callable[..., Any] | None = None,
+) -> dict[str, Any]:
+    """Make a minimal, explicit request to verify the configured model endpoint."""
+    adapter = resolve_draft_adapter(environ=environ, opener=opener)
+    if isinstance(adapter, UnconfiguredDraftAdapter):
+        raise DraftSuggestionError("还没填写 API Key。请先打开模型设置。")
+    payload = {
+        "model": adapter._model,
+        "temperature": 0,
+        "max_tokens": 8,
+        "messages": [{"role": "user", "content": "只回复 OK。"}],
+    }
+    content = _message_content(_post_chat(adapter, payload, min(adapter._timeout, 30)))
+    if not content.strip():
+        raise DraftSuggestionError("模型已响应，但没有返回内容。")
+    return {
+        "connected": True,
+        "provider": adapter.key.removeprefix("http_"),
+        "model": adapter._model,
+        "message": "连接成功，模型已可以使用。",
+    }
+
+
 def resolve_draft_endpoint(environ: Mapping[str, str]) -> tuple[str, str, str]:
     raw = str(environ.get("JINGWEI_DRAFT_PROVIDER") or DEFAULT_DRAFT_PROVIDER).strip().lower()
     provider = _PROVIDER_ALIASES.get(raw, raw) or DEFAULT_DRAFT_PROVIDER

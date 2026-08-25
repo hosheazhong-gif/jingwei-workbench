@@ -44,6 +44,12 @@ class ReportUiTest(unittest.TestCase):
         self.assertIn("这轮要决定", body)
         self.assertIn("全部题目", body)
         self.assertIn("新建题目", body)
+        self.assertIn("连接模型", body)
+        self.assertIn('id="home-model-settings"', body)
+        self.assertIn('id="bench-model-settings"', body)
+        self.assertIn('id="model-settings-dialog"', body)
+        self.assertIn('type="password"', body)
+        self.assertIn("保存并测试", body)
         self.assertIn("整理题目", body)
         self.assertIn("导出整理稿", body)
         # 两份导出并排：经理版是整理稿，详细版供内部核对
@@ -66,6 +72,10 @@ class ReportUiTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("javascript", content_type)
         self.assertIn("/workbench", script)
+        self.assertIn("/settings/model", script)
+        self.assertIn("/settings/model/test", script)
+        self.assertIn("api_key_set", script)
+        self.assertNotIn("sk-local-test", script)
         self.assertIn("/draft-revision", script)
         self.assertIn("/revisions/adopt", script)
         self.assertIn("/research-questions/", script)
@@ -248,6 +258,7 @@ class ReportUiTest(unittest.TestCase):
         self.assertIn("找不到出处", script)
         # 默认项要显式选中，不许只靠「默认排第一」碰运气
         self.assertIn("templateDefaultKey", script)
+
         # 去掉材料：先点一次再确认一次，被拒的理由要原样说给人听
         self.assertIn("removeSource", script)
         self.assertIn("pendingSourceRemovalId", script)
@@ -272,6 +283,15 @@ class ReportUiTest(unittest.TestCase):
         self.assertNotIn("pane-tab", script)
         self.assertNotIn("P-DEMO-001", script)
         self.assertIn('params.get("project")', script)
+
+    def test_model_settings_endpoint_exposes_status_but_never_secret(self) -> None:
+        status, content_type, body = self._get_text("/settings/model")
+        self.assertEqual(status, 200)
+        self.assertIn("application/json", content_type)
+        payload = json.loads(body)
+        self.assertIn("api_key_set", payload)
+        self.assertIn("providers", payload)
+        self.assertNotIn("api_key", payload)
 
     def test_browser_script_is_not_python_syntax(self) -> None:
         script = (PROJECT_ROOT / "frontend/report/app.js").read_text(encoding="utf-8")

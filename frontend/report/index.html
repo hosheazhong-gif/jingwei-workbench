@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>经纬</title>
-    <link rel="stylesheet" href="/styles.css?v=workbench51" />
+    <link rel="stylesheet" href="/styles.css?v=workbench52" />
   </head>
   <body>
     <p id="flash" class="flash" hidden></p>
@@ -14,6 +14,7 @@
         <h1>题目</h1>
       </header>
       <div class="home-toolbar">
+        <button id="home-model-settings" class="quiet model-settings-button" type="button">连接模型</button>
         <button id="home-guide" class="quiet" type="button">模板都是干什么的</button>
         <button id="home-tidy" class="quiet" type="button" hidden>整理题目</button>
         <button id="home-new" class="primary" type="button">新建题目</button>
@@ -36,6 +37,7 @@
           <p id="project-template" class="topbar-template" hidden></p>
         </div>
         <div class="export-actions">
+          <button id="bench-model-settings" class="secondary model-settings-button" type="button">连接模型</button>
           <button id="export-word" class="primary" type="button" title="给经理看的整理稿：正文加来源名称和链接">导出整理稿</button>
           <button id="export-detailed" class="secondary" type="button" title="内部核对用：每节列出主张、原文摘录、来源限制、机械检查、第几轮第几版">导出详细版</button>
         </div>
@@ -67,6 +69,52 @@
         </section>
       </main>
     </div>
-    <script src="/app.js?v=workbench51"></script>
+    <dialog id="model-settings-dialog" class="settings-dialog" aria-labelledby="model-settings-title">
+      <form id="model-settings-form">
+        <div class="settings-heading">
+          <div>
+            <p class="eyebrow">本机设置</p>
+            <h2 id="model-settings-title">连接模型</h2>
+          </div>
+          <button id="model-settings-close" class="quiet settings-close" type="button" aria-label="关闭模型设置">关闭</button>
+        </div>
+        <p id="model-settings-status" class="settings-status">正在读取设置…</p>
+        <label class="settings-field">
+          <span>模型服务</span>
+          <select id="model-provider" name="provider">
+            <option value="openai">OpenAI</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="moonshot">Kimi / Moonshot</option>
+            <option value="qwen">通义千问</option>
+            <option value="glm">智谱 GLM</option>
+            <option value="custom">自定义兼容接口</option>
+          </select>
+        </label>
+        <label class="settings-field">
+          <span>API Key</span>
+          <input id="model-api-key" name="api_key" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴 API Key" />
+        </label>
+        <details id="model-advanced" class="settings-advanced">
+          <summary>高级设置</summary>
+          <label class="settings-field">
+            <span>接口地址</span>
+            <input id="model-url" name="url" type="url" autocomplete="off" spellcheck="false" />
+          </label>
+          <label class="settings-field">
+            <span>模型名称</span>
+            <input id="model-name" name="model" type="text" autocomplete="off" spellcheck="false" />
+          </label>
+        </details>
+        <p class="settings-privacy">密钥只保存在这台电脑的经纬数据目录中，界面和读取接口不会返回密钥内容。“保存并测试”会向所选服务发送一条最短测试请求。</p>
+        <p id="model-settings-result" class="settings-result" aria-live="polite"></p>
+        <div class="settings-actions">
+          <button id="model-remove-key" class="quiet danger-text" type="button" hidden>删除已保存密钥</button>
+          <span class="settings-action-spacer"></span>
+          <button id="model-test" class="secondary" type="button">保存并测试</button>
+          <button id="model-save" class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="/app.js?v=workbench52"></script>
   </body>
 </html>

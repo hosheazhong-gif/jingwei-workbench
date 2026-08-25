@@ -43,6 +43,7 @@ class DesktopRuntimeTest(unittest.TestCase):
 
             self.assertTrue(result["ok"])
             self.assertEqual(result["templates"], 7)
+            self.assertTrue(result["model_settings"])
             self.assertTrue(Path(result["word_export"]).read_bytes().startswith(b"PK"))
             self.assertEqual(json.loads(report_path.read_text(encoding="utf-8")), result)
 

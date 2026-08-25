@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from app.local_env import load_local_env
+from app.local_env import load_local_env, update_local_env
 
 
 class LocalEnvTest(unittest.TestCase):
@@ -36,3 +36,32 @@ class LocalEnvTest(unittest.TestCase):
         self.addCleanup(lambda: os.environ.pop("JINGWEI_DRAFT_API_KEY", None))
         load_local_env(self.root)
         self.assertEqual(os.environ["JINGWEI_DRAFT_API_KEY"], "already-set")
+
+    def test_updates_selected_keys_without_removing_unrelated_lines(self) -> None:
+        (self.root / ".env").write_text(
+            "# keep this\nUNRELATED=value\nJINGWEI_DRAFT_API_KEY=old-key\n",
+            encoding="utf-8",
+        )
+        update_local_env(
+            self.root,
+            {
+                "JINGWEI_DRAFT_PROVIDER": "deepseek",
+                "JINGWEI_DRAFT_API_KEY": "new-key",
+            },
+        )
+        content = (self.root / ".env").read_text(encoding="utf-8")
+        self.assertIn("# keep this", content)
+        self.assertIn("UNRELATED=value", content)
+        self.assertIn("JINGWEI_DRAFT_PROVIDER=deepseek", content)
+        self.assertIn("JINGWEI_DRAFT_API_KEY=new-key", content)
+        self.assertNotIn("old-key", content)
+
+    def test_none_removes_managed_key(self) -> None:
+        (self.root / ".env").write_text(
+            "JINGWEI_DRAFT_API_KEY=old-key\nUNRELATED=value\n",
+            encoding="utf-8",
+        )
+        update_local_env(self.root, {"JINGWEI_DRAFT_API_KEY": None})
+        content = (self.root / ".env").read_text(encoding="utf-8")
+        self.assertNotIn("JINGWEI_DRAFT_API_KEY", content)
+        self.assertIn("UNRELATED=value", content)

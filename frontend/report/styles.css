@@ -570,7 +570,9 @@ body.col-dragging .split {
 
 textarea,
 input[type="text"],
-input[type="url"] {
+input[type="url"],
+input[type="password"],
+select {
   width: 100%;
   font: inherit;
   color: inherit;
@@ -858,6 +860,130 @@ button.round-tab.current {
   gap: .4rem;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.model-settings-button.connected::before {
+  content: "●";
+  margin-right: .35rem;
+  color: var(--accent);
+  font-size: var(--fs-meta);
+}
+
+.settings-dialog {
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: calc(var(--radius) * 2);
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: 0 1.2rem 4rem color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+.settings-dialog::backdrop {
+  background: color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+.settings-dialog form {
+  padding: 1.25rem 1.35rem 1.15rem;
+}
+
+.settings-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-heading h2 {
+  margin: .15rem 0 0;
+  font-size: var(--fs-title);
+}
+
+.settings-close {
+  flex: 0 0 auto;
+}
+
+.settings-status {
+  margin: 1rem 0;
+  padding: .65rem .75rem;
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.settings-status.connected {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.settings-field {
+  display: block;
+  margin-top: .85rem;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+.settings-field input,
+.settings-field select {
+  display: block;
+  margin-top: .3rem;
+  color: var(--ink);
+}
+
+.settings-advanced {
+  margin-top: .9rem;
+  padding-top: .2rem;
+  border-top: 1px solid var(--line);
+}
+
+.settings-advanced summary {
+  padding-top: .65rem;
+  color: var(--muted);
+  font-size: var(--fs-note);
+  cursor: pointer;
+}
+
+.settings-privacy,
+.settings-result {
+  margin: .9rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+.settings-result.error,
+.danger-text {
+  color: var(--warn);
+}
+
+.settings-actions {
+  position: sticky;
+  bottom: -1.15rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1.15rem;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.settings-action-spacer {
+  flex: 1;
+}
+
+@media (max-width: 620px) {
+  .settings-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-action-spacer {
+    display: none;
+  }
 }
 
 /* 「导出整理稿」和「导出详细版」并排，必须同尺寸。
