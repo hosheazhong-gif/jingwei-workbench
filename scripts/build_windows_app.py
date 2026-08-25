@@ -109,7 +109,9 @@ def main() -> int:
                 "archive_sha256": checksum,
                 "smoke": smoke,
             },
-            ensure_ascii=False,
+            # GitHub's Windows runner may expose a cp1252 console. Keep the
+            # machine-readable build summary printable on every code page.
+            ensure_ascii=True,
             indent=2,
         )
     )
