@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite3
+*-files/
+var/
+.env
+.venv/
+*.egg-info/
+dist/
+build/
+node_modules/
+.cursor/
+docs/
+CURSOR_HANDOFF.md
+
+
+# 导出给人看的稿。不是账本，不进版本库。
+导出/

@@ -1,0 +1,20 @@
+{
+  "template_key": "demo_market_scan",
+  "name": "市场扫描演示",
+  "execution_strategy_key": "fixed_workflow",
+  "default_view": "report_review",
+  "brief_prompt": "用一句话说明要观察的市场对象、时间范围和本轮决策问题。",
+  "recommended_question_labels": [
+    "市场现状",
+    "主要变化",
+    "待核实项"
+  ],
+  "labels": {
+    "brief": "本轮任务",
+    "source": "研究来源",
+    "claim": "可检查的判断依据",
+    "deliverable_block": "未命名的一节",
+    "impact_preview": "新材料影响范围"
+  },
+  "listed": false
+}

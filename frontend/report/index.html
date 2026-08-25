@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>经纬</title>
+    <link rel="stylesheet" href="/styles.css?v=workbench51" />
+  </head>
+  <body>
+    <p id="flash" class="flash" hidden></p>
+    <section id="home" class="home">
+      <header class="home-brand">
+        <p class="eyebrow">经纬</p>
+        <h1>题目</h1>
+      </header>
+      <div class="home-toolbar">
+        <button id="home-guide" class="quiet" type="button">模板都是干什么的</button>
+        <button id="home-tidy" class="quiet" type="button" hidden>整理题目</button>
+        <button id="home-new" class="primary" type="button">新建题目</button>
+      </div>
+      <div id="home-create" class="home-create" hidden></div>
+      <div class="home-split">
+        <div id="home-board" class="home-board">
+          <p class="empty">正在读取题目…</p>
+        </div>
+        <aside id="guide" class="guide" hidden></aside>
+      </div>
+    </section>
+    <div id="bench" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">
+            <button id="go-home" class="brand-link" type="button">全部题目</button>
+          </p>
+          <h1 id="project-name">打开题目</h1>
+          <p id="project-template" class="topbar-template" hidden></p>
+        </div>
+        <div class="export-actions">
+          <button id="export-word" class="primary" type="button" title="给经理看的整理稿：正文加来源名称和链接">导出整理稿</button>
+          <button id="export-detailed" class="secondary" type="button" title="内部核对用：每节列出主张、原文摘录、来源限制、机械检查、第几轮第几版">导出详细版</button>
+        </div>
+      </header>
+      <p id="mandate" class="mandate">
+        <span class="mandate-label">这轮要决定</span>
+        <span id="mandate-text">打开题目后会出现在这里。</span>
+      </p>
+      <main class="bench">
+        <section class="col" aria-label="本轮问题">
+          <h2>本轮问题</h2>
+          <div id="questions" class="col-body">
+            <p class="empty">打开题目后，本轮问题会出现在这里。</p>
+          </div>
+        </section>
+        <button class="split" type="button" data-split="0" aria-label="调整本轮问题和给经理的稿的宽度"></button>
+        <section class="col draft-col" aria-label="给经理的稿">
+          <h2>给经理的稿</h2>
+          <div id="draft" class="col-body">
+            <p class="empty">打开题目后，稿会出现在这里。</p>
+          </div>
+        </section>
+        <button class="split" type="button" data-split="1" aria-label="调整给经理的稿和材料匣的宽度"></button>
+        <section class="col" aria-label="材料">
+          <h2>材料</h2>
+          <div id="materials" class="col-body">
+            <p class="empty">打开题目后，材料会出现在这里。</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js?v=workbench51"></script>
+  </body>
+</html>

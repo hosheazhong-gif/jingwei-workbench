@@ -1,0 +1,339 @@
+{
+  "schema_version": "0.8",
+  "created_at": "2026-08-12",
+  "project": {
+    "id": "P-DEMO-001",
+    "name": "远川食品产业园匿名研究",
+    "template_key": "industry_chain_analysis_presales",
+    "execution_strategy_key": "fixed_workflow",
+    "stage": "internal_research_recovery",
+    "decision_gate": "brainstorm_ready"
+  },
+  "brief": {
+    "id": "B-DEMO-001",
+    "original_context": "历史项目从现场观察和一句话研究任务启动，完整客户资料未提供给实习生。",
+    "decision_question": "如何恢复已有判断，识别剩余空间可能承载的功能，并明确下一步验证内容？",
+    "deliverable": "内部研究恢复稿",
+    "not_a_final_client_recommendation": true
+  },
+  "coverage_note": "本文件是匿名合成测试夹具，不对应真实客户、园区或研究项目。",
+  "research_questions": [
+    {
+      "id": "RQ-01",
+      "question": "当前项目的租户、空间与温控物流设施结构到底是什么？",
+      "enough_for_now": "获得脱敏租户/空间台账和设施参数"
+    },
+    {
+      "id": "RQ-02",
+      "question": "客群单一及食品产业占比60%+的口径和原始数据是什么？",
+      "enough_for_now": "能回到租户清单、面积或收入分母"
+    },
+    {
+      "id": "RQ-04",
+      "question": "星河优选食品科技园与远川园区在哪些条件上可比？",
+      "enough_for_now": "核实原始资料并完成可比与不可比条件表"
+    },
+    {
+      "id": "RQ-06",
+      "question": "候选方向的空间、合规、投资和运营门槛是什么？",
+      "enough_for_now": "获得最小空间参数、合规要求、粗粒度成本和运营主体假设"
+    }
+  ],
+  "source_status_enum": [
+    "available",
+    "path_expired",
+    "permission_denied",
+    "deleted"
+  ],
+  "sources": [
+    {
+      "id": "S-001",
+      "kind": "user_provided",
+      "title": "用户对历史工作过程的说明",
+      "availability": "available",
+      "limitation": "回忆性材料，不证明项目业务事实"
+    },
+    {
+      "id": "S-002",
+      "kind": "user_provided",
+      "title": "项目本体分析页",
+      "file_name": "S-002_园区分析.txt",
+      "snapshot_path": "samples/synthetic_case/sources/S-002_园区分析.txt",
+      "sha256": "d2d1cb9e600743c6346f0769aaaf7bd257e33a7ac7e06013de58258425c9cb7c",
+      "availability": "available",
+      "limitation": "二次成果页，无页内原始引用"
+    },
+    {
+      "id": "S-003",
+      "kind": "user_provided",
+      "title": "星河优选食品科技园案例借鉴页",
+      "file_name": "S-003_案例借鉴.txt",
+      "snapshot_path": "samples/synthetic_case/sources/S-003_案例借鉴.txt",
+      "sha256": "b5221a280bee2e8a8b11e11b745a0ba7ceb32f52cf80e1b333e3658e0e2a8142",
+      "availability": "available",
+      "limitation": "二次成果页，外部事实待追溯"
+    },
+    {
+      "id": "S-004",
+      "kind": "user_provided",
+      "title": "园区局部业态创新案例搜集",
+      "file_name": "园区局部业态创新案例搜集.pdf",
+      "availability": "path_expired"
+    },
+    {
+      "id": "S-005",
+      "kind": "user_provided",
+      "title": "园区局部业态创新报告",
+      "file_name": "园区局部业态创新报告.docx",
+      "availability": "path_expired"
+    },
+    {
+      "id": "S-006",
+      "kind": "user_provided",
+      "title": "远川园区案例搜集",
+      "file_name": "远川园区案例搜集.pdf",
+      "availability": "path_expired"
+    },
+    {
+      "id": "S-007",
+      "kind": "user_provided",
+      "title": "中国温控物流市场总产值数据",
+      "file_name": "中国温控物流市场总产值数据.xlsx",
+      "availability": "path_expired",
+      "analysis_role": "macro_market_outlook",
+      "delivery_use": "恢复并核验后可用于行业前景、规模与市场表现",
+      "qa_required": ["source", "actual_vs_forecast", "formula", "unit", "time_scope"]
+    },
+    {
+      "id": "S-008",
+      "kind": "user_provided",
+      "title": "自身审视（第1、3页）",
+      "file_name": "自身审视(第1、3页).pdf",
+      "availability": "path_expired"
+    }
+  ],
+  "evidence_excerpts": [
+    {
+      "id": "E-001",
+      "source_id": "S-002",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "左上品牌区",
+        "bbox_px": [110, 194, 617, 327]
+      },
+      "excerpt": "园区内现已入驻高质城市配送及生鲜超市品牌",
+      "context_limit": "品牌图标未附租户台账或来源脚注"
+    },
+    {
+      "id": "E-002",
+      "source_id": "S-002",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "左下占比标注",
+        "bbox_px": [394, 482, 616, 588]
+      },
+      "excerpt": "60%+ 食品产业客群",
+      "context_limit": "分母、时点和统计口径缺失"
+    },
+    {
+      "id": "E-003",
+      "source_id": "S-002",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "左下风险结论",
+        "bbox_px": [13, 490, 393, 589]
+      },
+      "excerpt": "存在问题：客群结构单一，抗风险能力弱",
+      "context_limit": "属于成果页判断"
+    },
+    {
+      "id": "E-004",
+      "source_id": "S-002",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "右侧产业链图",
+        "bbox_px": [669, 196, 1315, 556]
+      },
+      "excerpt": "当前产业链条仅包含产业图谱中游部分，亟待延伸",
+      "context_limit": "图谱覆盖与真实企业、设施的映射缺失"
+    },
+    {
+      "id": "E-005",
+      "source_id": "S-003",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "左栏时间线",
+        "bbox_px": [35, 145, 389, 637]
+      },
+      "excerpt": "2025年 星河优选推出透明工厂计划",
+      "context_limit": "需核对官方计划名称、时间和出处"
+    },
+    {
+      "id": "E-006",
+      "source_id": "S-003",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "中下策略段",
+        "bbox_px": [407, 474, 853, 641]
+      },
+      "excerpt": "进一步向后端延伸链条至销售服务功能，能够实现产后一站式服务",
+      "context_limit": "属于案例借鉴后的策略判断"
+    },
+    {
+      "id": "E-007",
+      "source_id": "S-003",
+      "locator": {
+        "kind": "image_region",
+        "region_label": "右栏趋势标题",
+        "bbox_px": [874, 148, 1263, 221]
+      },
+      "excerpt": "小批量、多批次的柔性、敏捷生产已成为食品加工行业的主流趋势",
+      "context_limit": "缺少行业数据、样本和时间范围"
+    }
+  ],
+  "claims": [
+    {
+      "id": "C-001",
+      "source_id": "S-002",
+      "evidence_excerpt_ids": ["E-001"],
+      "locator": "左上品牌区",
+      "text": "旧成果页声称园区已入驻甲类商超、乙类零售、丙类配送等匿名租户。",
+      "epistemic_type": "factual_claim",
+      "verification_status": "captured"
+    },
+    {
+      "id": "C-002",
+      "source_id": "S-002",
+      "evidence_excerpt_ids": ["E-002"],
+      "locator": "左下60%+标注",
+      "text": "旧成果页声称食品产业客群占比超过60%；用户补充该信息来自客户。",
+      "epistemic_type": "factual_claim",
+      "verification_status": "captured",
+      "provenance_scope": "client_provided",
+      "independently_verified": false,
+      "delivery_rule": "可表述为据客户提供；分母、时点和口径待补"
+    },
+    {
+      "id": "C-004",
+      "source_id": "S-002",
+      "evidence_excerpt_ids": ["E-003"],
+      "locator": "标题及左下结论",
+      "text": "旧成果页判断项目存在产业客群单一风险。",
+      "epistemic_type": "judgment",
+      "verification_status": "captured"
+    },
+    {
+      "id": "C-005",
+      "source_id": "S-002",
+      "evidence_excerpt_ids": ["E-004"],
+      "locator": "右侧产业链图红框",
+      "text": "旧成果页将项目现有覆盖集中于生产代工、规模仓储与温控物流运输等中游功能。",
+      "epistemic_type": "inference",
+      "verification_status": "captured"
+    },
+    {
+      "id": "C-008",
+      "source_id": "S-003",
+      "evidence_excerpt_ids": ["E-005"],
+      "locator": "左下2025年时间线",
+      "text": "旧成果页声称星河优选在2025年推出透明工厂计划。",
+      "epistemic_type": "factual_claim",
+      "verification_status": "captured"
+    },
+    {
+      "id": "C-011",
+      "source_id": "S-003",
+      "evidence_excerpt_ids": ["E-006"],
+      "locator": "中下红色建议段",
+      "text": "旧成果页建议向上游研发延伸、向下游销售服务延伸，形成产后一站式服务。",
+      "epistemic_type": "judgment",
+      "verification_status": "captured"
+    },
+    {
+      "id": "C-012",
+      "source_id": "S-003",
+      "evidence_excerpt_ids": ["E-007"],
+      "locator": "右栏主标题",
+      "text": "旧成果页判断食品加工呈现小批量、多批次、柔性和敏捷生产趋势。",
+      "epistemic_type": "factual_claim",
+      "verification_status": "captured"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "text": "当前材料支持客群集中与中游功能集中的工作假设，但不支持定论。",
+      "supporting_claim_ids": ["C-001", "C-002", "C-004", "C-005"],
+      "confidence": "low_to_medium",
+      "alternative_explanations": [
+        "食品客户占比较高可能是专业定位，而非风险",
+        "产业链图空白可能表示未研究，而非真实缺失"
+      ]
+    },
+    {
+      "id": "F-002",
+      "text": "星河优选案例提供生产—内容—销售—服务组合方向，但不能证明适配远川园区。",
+      "supporting_claim_ids": ["C-008", "C-011", "C-012"],
+      "confidence": "low"
+    },
+    {
+      "id": "F-003",
+      "text": "当前最严重的问题是证据链断裂，而不仅是信息量不足。",
+      "supporting_source_ids": ["S-004", "S-005", "S-006", "S-007", "S-008"],
+      "confidence": "high"
+    }
+  ],
+  "options": [
+    {
+      "id": "O-001",
+      "text": "为现有食品客户增加小批量、多批次加工或共享生产能力。",
+      "status": "candidate"
+    },
+    {
+      "id": "O-002",
+      "text": "引入选品、展示、直播或渠道服务，连接加工与销售。",
+      "status": "candidate"
+    },
+    {
+      "id": "O-003",
+      "text": "增加研发、包装、检测、品牌与供应链服务等轻资产配套。",
+      "status": "candidate"
+    }
+  ],
+  "deliverable_blocks": [
+    {
+      "id": "DB-001",
+      "title": "项目问题",
+      "content": "据客户提供及现有历史成果，远川园区食品相关客群占比较高，旧成果进一步将核心矛盾概括为“客群集中、产业链功能偏中游”。生产型租户占比可以作为客户提供信息进入报告；“是否构成风险”及产业链诊断仍需租户底表、空间与经营数据验证。",
+      "claim_ids": ["C-001", "C-002", "C-004", "C-005"],
+      "restriction": "必须区分“客户提供信息”和“顾问判断/待验证诊断”。"
+    },
+    {
+      "id": "DB-002",
+      "title": "案例启示",
+      "content": "星河优选食品科技园案例提示了一种可能机制：把食品加工能力与选品、渠道、品牌和服务连接，以小批量、多批次模式缩短生产到销售的链条。该机制能否迁移到远川园区，取决于空间合规、客户订单、运营主体和渠道能力，尚未完成验证。",
+      "claim_ids": ["C-008", "C-011", "C-012"],
+      "finding_ids": ["F-002"],
+      "restriction": "不得表述为“行业主流已证明”或“可直接复制”。"
+    },
+    {
+      "id": "DB-003",
+      "title": "候选方向",
+      "content": "当前可保留三类探索方向：共享/柔性加工，选品展示与渠道服务，以及研发包装检测等轻资产配套。它们是研究假设，不是推荐方案；下一阶段应优先验证客户需求、空间合规、运营主体和单位经济性。",
+      "option_ids": ["O-001", "O-002", "O-003"],
+      "restriction": "不得表述为推荐方案"
+    },
+    {
+      "id": "DB-004",
+      "title": "客户资料请求",
+      "content": "本轮建议请求：\n1. 脱敏租户、面积、租金、合同期限和招商线索台账；\n2. 空置空间的平面、层高、荷载、温区、机电、消防、排污和食品生产条件；\n3. 冷库、一般仓储、装卸、运输和配套设施的容量与利用率；\n4. 历史运营收入、成本、改造预算边界和目标回报；\n5. 现有客户采购、外包、渠道和新增服务需求；\n6. 属地规划、食品生产、温控物流和环保等适用政策与许可条件。",
+      "restriction": "资料请求不是已核实事实，不得写成项目结论"
+    }
+  ],
+  "override_decision": {
+    "id": "OVR-001",
+    "action": "在附件不可访问和业务数据缺失时生成内部头脑风暴版本",
+    "does_not_change_verification_status": true,
+    "review_trigger": "原附件重新提供或获得租户、空间、经营底表"
+  }
+}

@@ -1,0 +1,1610 @@
+:root {
+  /* 色板与字号层级集中定义；下方规则不再写死颜色和字号。 */
+  --bg: #f7f7f5;
+  --paper: #ffffff;
+  --col: #ffffff;
+  --ink: #37352f;
+  --muted: #787774;
+  --faint: #9b9a97;
+  --line: #e9e9e7;
+  --line-strong: #dfdedb;
+  --accent: #1a5c42;
+  --accent-soft: #eef4f1;
+  --warn: #b3261e;
+  --warn-bg: #fdf2f1;
+  --stale: #8a6100;
+  --stale-bg: #fbf6e9;
+
+  --fs-title: 1.5rem;
+  --fs-section: 0.8125rem;
+  --fs-body: 1rem;
+  --fs-note: 0.875rem;
+  --fs-meta: 0.8125rem;
+  --lh-body: 1.7;
+
+  --radius: 4px;
+  --btn-pad: 0.4rem 0.75rem;
+}
+
+/* hidden 必须真的隐藏。#bench 曾经用 ID 选择器写 display:flex，压过了浏览器
+   给 [hidden] 的 display:none，否则工作台会一直挂在首页下面。 */
+[hidden] {
+  display: none !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* rem 认的是 html 的字号。基准定在这里，--fs-* 才跟正文是同一套刻度。 */
+html {
+  font-size: 17px;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", "PingFang SC",
+    "Noto Sans SC", sans-serif;
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.home,
+#bench {
+  flex: 1;
+  min-height: 0;
+}
+
+.home {
+  overflow-y: auto;
+}
+
+body.col-dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* body 是竖向 flex，光靠 margin:0 auto 居不了中，必须补 width:100%。 */
+.home {
+  width: 100%;
+  max-width: 46rem;
+  transition: max-width 0.15s ease;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2.4rem 1.5rem 4rem;
+}
+
+.home-brand h1,
+.topbar h1 {
+  margin: 0.15rem 0 0;
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+.home-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1.4rem 0 0.75rem;
+}
+
+.home-create {
+  background: var(--col);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.home-board,
+.col {
+  background: var(--col);
+  border: 1px solid var(--line);
+}
+
+.home-board {
+  border-radius: var(--radius);
+  overflow: hidden;
+  padding: 0;
+}
+
+.home-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 1.2rem;
+}
+
+.home-row:last-child {
+  border-bottom: 0;
+}
+
+.home-row:hover,
+.home-row:focus-within {
+  background: var(--paper);
+}
+
+.home-open {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.home-row strong {
+  display: block;
+  font-size: 1.12rem;
+  font-weight: 650;
+}
+
+.home-decision {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+/* 回到题目列表是顶栏唯一的导航，不能比正文还小（流水账第 1 条）。 */
+.brand-link {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+  margin-left: -0.5rem;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.brand-link::before {
+  content: "← ";
+}
+
+.brand-link:hover {
+  color: var(--ink);
+  background: var(--bg);
+  border-color: var(--line);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem 0.85rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+/* 四档按钮共用同一套尺寸。并排的两个按钮长得不一样大，是因为以前每档
+   各写各的 padding；现在尺寸只在这一处定义。 */
+#export-word,
+button.primary,
+button.secondary,
+button.ghost {
+  padding: var(--btn-pad);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: 1.35;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+#export-word,
+button.primary {
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+}
+
+button.primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+button.secondary {
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+}
+
+button.secondary:hover {
+  background: var(--bg);
+}
+
+button.ghost {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+button.ghost:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+button.quiet {
+  background: transparent;
+  border: 0;
+  padding: 0.4rem 0.2rem;
+  font-family: inherit;
+  font-size: var(--fs-note);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.quiet:hover {
+  color: var(--ink);
+}
+
+button.progress {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.12rem 0.55rem;
+  font: inherit;
+  font-size: var(--fs-meta);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+button.progress.current {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.mandate {
+  margin: 0;
+  padding: 0.75rem 1.4rem 0.9rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  font-size: 1.08rem;
+}
+
+.mandate-label {
+  display: block;
+  margin-bottom: 0.12rem;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+}
+
+.mandate-text {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mandate input {
+  margin-top: 0.35rem;
+}
+
+.flash {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0.55rem 1.4rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.flash.error {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+#bench {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.bench {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: var(--bg);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border-left: 0;
+  border-top: 0;
+  border-bottom: 0;
+}
+
+.col h2 {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.85rem 1.05rem 0.5rem;
+  font-size: var(--fs-section);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.col-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 1.05rem 1.4rem;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--faint) transparent;
+}
+
+.col-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.col-body::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.split {
+  flex: 0 0 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: var(--bg);
+  cursor: col-resize;
+}
+
+.split:hover,
+.split:focus,
+body.col-dragging .split {
+  background: var(--accent-soft);
+}
+
+.draft-col {
+  background: var(--paper);
+  flex: 1 1 auto;
+}
+
+.question,
+.block,
+.material {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0.75rem 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* 稿的正文按 --lh-body 排，段距收到 0.6em：原来 1.1em 段距 + 默认行距，
+   一节稿读起来像被撑开的（流水账第 5 条）。 */
+.block-body p {
+  margin: 0 0 0.6em;
+  line-height: var(--lh-body);
+}
+
+.block-body p:last-child {
+  margin-bottom: 0;
+}
+
+.question-title,
+.material-title,
+.block-title {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 650;
+  color: inherit;
+  cursor: pointer;
+}
+
+.block-title-edit input {
+  width: 100%;
+  font: inherit;
+  font-weight: 650;
+}
+
+.question.current,
+.block.current,
+.material.current {
+  background: var(--accent-soft);
+  margin: 0 -1.05rem;
+  padding-left: 1.05rem;
+  padding-right: 1.05rem;
+}
+
+.question.enough .question-title {
+  color: var(--accent);
+}
+
+.block-excerpts {
+  margin-top: 0.45rem;
+}
+
+.block-excerpt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+
+.block-excerpt .excerpt.current {
+  font-weight: 650;
+}
+
+.block.stale {
+  box-shadow: inset 3px 0 0 var(--stale);
+}
+
+.progress-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+/* 「这条问题落在稿的哪一节」。还没定的用淡一档的字，但仍然写出来——
+   状态不能只靠「消失」表达。 */
+.question-target {
+  margin-top: 0.3rem;
+  font-size: var(--fs-meta);
+}
+
+.question-target.undecided {
+  color: var(--faint);
+}
+
+.question-target-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.question-target-edit .meta {
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  white-space: nowrap;
+}
+
+.question-target-edit select {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-meta);
+  padding: 0.25rem 0.35rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.question.archived .question-title {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.question.archived {
+  opacity: 0.78;
+}
+
+.deferred-heading {
+  margin: 1rem 0 0.35rem;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+}
+
+.add-question {
+  margin-top: 0.75rem;
+}
+
+/* 附注一律使用 --fs-note，不在各处重复定义。 */
+.why,
+.hint {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+.marked {
+  background: var(--warn-bg);
+  color: var(--warn);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.preview {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+textarea,
+input[type="text"],
+input[type="url"] {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.6rem;
+  background: var(--paper);
+}
+
+.home-create input,
+.home-create textarea {
+  margin-top: 0.55rem;
+}
+
+.home-create input:first-child {
+  margin-top: 0;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.question-preview {
+  margin: 0 0 0.8rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.question-preview-list {
+  margin: 0.4rem 0 0.6rem;
+  padding-left: 1.1rem;
+}
+
+.question-preview-list .why {
+  margin: 0.2rem 0 0.45rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.excerpt {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-note);
+}
+
+.excerpt-form {
+  margin-top: 0.55rem;
+}
+
+.excerpt-form textarea {
+  margin-top: 0.35rem;
+}
+
+.home-board .empty {
+  padding: 1rem 1.2rem;
+  margin: 0;
+}
+
+.add-line {
+  margin: 0 0 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.note {
+  margin: 0.4rem 0 0;
+  font-size: var(--fs-note);
+  color: var(--stale);
+}
+
+.template-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0;
+}
+
+.template-pick-label {
+  font-size: var(--fs-note);
+  color: var(--stale);
+}
+
+.template-pick select {
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+}
+
+.search-reminder {
+  margin: 0 0 0.5rem;
+  font-size: var(--fs-note);
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .bench {
+    flex-direction: column;
+  }
+
+  .split {
+    display: none;
+  }
+
+  .col,
+  .draft-col {
+    flex: 1 1 auto;
+    min-height: 16rem;
+    max-height: 70vh;
+    min-width: 0;
+  }
+}
+
+.material .pick {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .4rem;
+  font-size: var(--fs-meta);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.material .pick input {
+  margin: 0;
+}
+
+/* 「一起归」和「归到这条问题」原来会挤成一串字，看不出是两个东西 */
+.material .pick + button.ghost {
+  margin-left: .55rem;
+}
+
+.preview-banner {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin: .2rem 0 .5rem;
+}
+
+.prior-body {
+  margin: .6rem 0 .2rem;
+  padding: .6rem .8rem;
+  border-left: 2px solid var(--line-strong);
+  background: var(--bg);
+}
+
+.prior-body .block-body p {
+  color: var(--muted);
+}
+
+button.linky {
+  border: 0;
+  background: none;
+  padding: 0 0 0 .35rem;
+  font: inherit;
+  font-size: .85em;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+button.group-heading {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  padding: .5rem .6rem;
+  margin: .8rem 0 .4rem;
+  font: inherit;
+  font-size: var(--fs-note);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button.group-heading:hover {
+  background: var(--line);
+  border-color: var(--line-strong);
+}
+
+button.group-heading .fold-mark { flex: none; width: .9rem; color: var(--muted); }
+
+button.group-heading .fold-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* 两行以内写全，超出才省略；省略时靠 title 悬停看全文 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  word-break: break-word;
+}
+
+button.group-heading .fold-count {
+  flex: none;
+  min-width: 1.35rem;
+  text-align: center;
+  padding: .05rem .35rem;
+  border-radius: 999px;
+  background: var(--line);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+button.group-heading.folded { background: var(--bg); color: var(--muted); }
+
+.material.set-aside {
+  opacity: .72;
+}
+
+.question .full-question {
+  color: var(--muted);
+}
+
+.block.folded { cursor: pointer; }
+
+.block-gist .gist-line {
+  margin: .15rem 0 .1rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fold-all { display: flex; justify-content: flex-end; margin: 0 0 .3rem; }
+
+.lookback-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding: .5rem .6rem;
+  margin: 0 0 .6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.block.archived { border-left: 2px solid var(--line-strong); padding-left: .8rem; }
+
+.block.archived .block-body p { color: var(--muted); }
+
+.round-tabs { display: flex; gap: .35rem; flex-wrap: wrap; margin: 0 0 .45rem; }
+
+button.round-tab {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  padding: .2rem .7rem;
+  font: inherit;
+  font-size: var(--fs-meta);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.round-tab:hover { background: var(--line); }
+
+button.round-tab.current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.mandate-text-plain { color: var(--muted); }
+
+
+/* 顶栏两个导出：整理稿给经理看，详细版内部核对 */
+.export-actions {
+  display: flex;
+  gap: .4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 「导出整理稿」和「导出详细版」并排，必须同尺寸。
+   尺寸走 button.secondary 的统一档，这里不再另写 padding 和字号。 */
+
+/* 收口是换轮，不是「再补一条」。单独隔出来，别跟上面的按钮长一样。 */
+.round-close {
+  margin-top: 1.1rem;
+  padding-top: .7rem;
+  border-top: 1px solid var(--line);
+}
+
+.round-close .hint {
+  margin: 0 0 .45rem;
+}
+
+/* 收口是换轮，是这一栏里最重的一次动作：用主色描边 + 主色字，
+   跟上面那些浅框一眼分得开（流水账第 3 条）。 */
+button.round-close-button {
+  width: 100%;
+  padding: var(--btn-pad);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+button.round-close-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+button.round-close-button:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+/* 收口过的轮次：一个总文件夹，点开才看得到里面 */
+button.group-heading.round-folder {
+  background: var(--bg);
+  border-color: var(--line-strong);
+  margin-top: .6rem;
+}
+
+.round-folder-body {
+  margin-left: .55rem;
+  padding-left: .55rem;
+  border-left: 2px solid var(--line);
+}
+
+.round-divider {
+  margin: .9rem 0 .45rem;
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-meta);
+  font-weight: 650;
+  color: var(--muted);
+}
+
+
+/* 正文底下那串原话得先说明自己是什么 */
+.excerpts-heading {
+  margin: .1rem 0 .35rem;
+  font-size: var(--fs-meta);
+  font-weight: 650;
+  color: var(--muted);
+}
+
+
+/* ── 三栏工作台的统一视觉基线 ── */
+
+/* 第 3 条：「这轮还没开始」跟本轮问题的其他框长得一样，分不出来。
+   它是退回上一轮，属于本轮之外的动作，用虚线框和弱色单独成块。 */
+.round-reopen {
+  margin: .6rem 0 0;
+  padding: .75rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.round-reopen .hint {
+  margin: 0 0 .5rem;
+}
+
+button.round-reopen-button {
+  width: 100%;
+  padding: var(--btn-pad);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.round-reopen-button:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+/* 第 4 条：加文件那一块字号、框线、对齐全不统一，还有没框的文字键。 */
+.add-file {
+  margin: .5rem 0;
+  padding: .75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.add-file .file-input {
+  font-family: inherit;
+  font-size: var(--fs-note);
+  color: var(--muted);
+  max-width: 100%;
+}
+
+.add-file .file-input::file-selector-button {
+  padding: var(--btn-pad);
+  margin-right: .6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: var(--fs-note);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.add-file-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .6rem;
+}
+
+.add-file-line .hint {
+  margin: 0;
+}
+
+/* 第 6 条：原话是佐证不是正文，默认收起，摊开时底色要跟正文分得开。 */
+button.excerpts-heading {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: .5rem 0 0;
+  padding: .3rem 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.excerpts-heading:hover {
+  color: var(--ink);
+}
+
+.block-excerpts.open {
+  margin-top: .35rem;
+  padding: .1rem .75rem .6rem;
+  border-left: 2px solid var(--line-strong);
+  background: var(--bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.block-excerpts.open .excerpt {
+  color: var(--muted);
+}
+
+.block-excerpts.open .excerpt.current {
+  color: var(--ink);
+}
+
+/* 第 5 条：收起键太小。稿栏顶上的「全部展开 / 只看选中的一节」要够点。 */
+.fold-all button.quiet {
+  padding: .3rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+/* 三栏之间靠细线分，不靠底色差 */
+.col {
+  background: var(--paper);
+}
+
+.split {
+  background: var(--line);
+}
+
+.topbar {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+/* 选中的一行：浅底 + 左侧主色细条，不用整块变色 */
+.question.current,
+.block.current,
+.material.current {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* 这道题按哪套问法在拆，建完之后也要一直看得见（2026-08-23 流水账）。 */
+.home-template {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: var(--fs-meta);
+}
+
+.topbar-template {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+}
+
+/* 介绍打开时首页放宽，题目列表在左、模板介绍在右，用上横向那片空地。 */
+body.mode-guide .home {
+  max-width: 82rem;
+}
+
+.home-split {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+}
+
+.home-split > .home-board {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+body.mode-guide .home-split > .home-board {
+  flex: 0 0 26rem;
+}
+
+.guide {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+  max-height: calc(100vh - 12rem);
+  overflow-y: auto;
+  padding: 0 0.2rem 0 1.2rem;
+  border-left: 1px solid var(--line);
+}
+
+@media (max-width: 1100px) {
+  .home-split {
+    flex-direction: column;
+  }
+
+  body.mode-guide .home-split > .home-board {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .guide {
+    width: 100%;
+    max-height: none;
+    padding: 1.2rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* ── 模板介绍：只描述已安装模板，不是外部知识库 ── */
+
+.guide-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.9rem;
+}
+
+button.guide-tab {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: var(--fs-note);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.guide-tab:hover { color: var(--ink); }
+
+button.guide-tab.current {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.guide-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.guide-tag {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  font-weight: 400;
+}
+
+.guide-intro p {
+  margin: 0 0 0.6rem;
+  line-height: var(--lh-body);
+}
+
+.guide-label {
+  margin: 1.4rem 0 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* 什么时候用 / 什么时候别用，并排放才对得起来 */
+.guide-fit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.guide-fit-col {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.guide-fit-col.fit-avoid {
+  border-left: 2px solid var(--stale);
+}
+
+.guide-fit-title {
+  margin: 0 0 0.4rem;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.guide-fit-col ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: var(--fs-note);
+}
+
+.guide-fit-col li { margin-bottom: 0.25rem; line-height: 1.6; }
+
+/* 流程图：竖着走，人工关卡单独标——「人点收下才算数」是这产品最要紧的一条 */
+.guide-flow {
+  margin-top: 0.6rem;
+}
+
+.flow-node {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.flow-node.gate {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.flow-stage {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: var(--fs-note);
+  font-weight: 600;
+}
+
+.flow-node.gate .flow-stage { color: var(--accent); }
+
+.flow-gate-mark {
+  flex: none;
+  padding: 0.02rem 0.35rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+
+.flow-detail {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  line-height: 1.55;
+}
+
+.flow-arrow {
+  margin: 0;
+  padding: 0.1rem 0;
+  text-align: center;
+  color: var(--faint);
+  font-size: var(--fs-note);
+  line-height: 1;
+}
+
+.flow-loop {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: var(--fs-meta);
+}
+
+.guide-steps {
+  margin: 0.6rem 0 0;
+  padding-left: 1.3rem;
+}
+
+.guide-steps > li {
+  margin-bottom: 0.85rem;
+  line-height: 1.6;
+}
+
+.guide-step-detail {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+.guide-done {
+  margin: 0.25rem 0 0;
+  color: var(--accent);
+  font-size: var(--fs-meta);
+}
+
+/* 样例是静态文案，不是材料。整块跟正文分开，别让人当证据用。 */
+.guide-example {
+  margin-top: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  border-left: 2px solid var(--line-strong);
+  background: var(--bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: var(--fs-note);
+}
+
+.guide-example p { margin: 0 0 0.5rem; line-height: 1.6; }
+.guide-example ol { margin: 0 0 0.6rem; padding-left: 1.2rem; }
+.guide-example li { margin-bottom: 0.25rem; line-height: 1.6; }
+
+.guide-ex-label {
+  margin: 0.7rem 0 0.25rem !important;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+
+.guide-ex-brief { font-weight: 600; }
+
+.guide-ex-draft {
+  margin: 0 0 0.5rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.guide-ex-note {
+  color: var(--stale);
+  font-size: var(--fs-meta);
+}
+
+.guide-pitfalls {
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+  font-size: var(--fs-note);
+}
+
+.guide-pitfalls li {
+  margin-bottom: 0.4rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.guide-note {
+  margin: 1.4rem 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+}
+
+/* 数字清单：一个一个对出处。找不到出处的那几行要跳出来。 */
+button.numbers-heading {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0.5rem 0 0;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.numbers-heading:hover { color: var(--ink); }
+button.numbers-heading.has-missing { color: var(--warn); }
+
+.numbers.open {
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.75rem 0.5rem;
+  border-left: 2px solid var(--line-strong);
+  background: var(--bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.number-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-meta);
+}
+
+.number-row:last-of-type { border-bottom: 0; }
+
+.number-token {
+  flex: 0 0 5rem;
+  font-weight: 600;
+}
+
+/* 出处那一列必须自己会缩。真机上研报标题有 40 多个字、又不带空格，
+   原来写的 flex: 0 0 auto 让它把上下文那一列挤成 0 宽，还捅出了面板右边。 */
+.number-context {
+  flex: 1 1 55%;
+  min-width: 0;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.number-where {
+  flex: 0 1 11rem;
+  min-width: 0;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.number-row.missing { background: var(--warn-bg); }
+.number-row.missing .number-token,
+.number-row.missing .number-where { color: var(--warn); }
+
+/* 改一节牵动哪几节。改掉的数字别处还照旧写着，那一行要跳出来。 */
+button.impact-heading {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0.5rem 0 0;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.impact-heading:hover { color: var(--ink); }
+button.impact-heading.has-changed { color: var(--warn); }
+
+.impact.open {
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.75rem 0.5rem;
+  border-left: 2px solid var(--line-strong);
+  background: var(--bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.impact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-meta);
+}
+
+.impact-row:last-of-type { border-bottom: 0; }
+
+button.impact-jump {
+  flex: 0 0 auto;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+button.impact-jump:hover { color: var(--accent); }
+
+.impact-why {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.impact-row.changed { background: var(--warn-bg); }
+.impact-row.changed .impact-jump,
+.impact-row.changed .impact-why { color: var(--warn); }
+
+/* 走查状态挨着模板名。没走查过的必须一眼看得出来，不许跟走查过的长得一样。 */
+.guide-status {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--stale);
+  border-radius: var(--radius);
+  background: var(--stale-bg);
+  color: var(--stale);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+/* 三档三个样子。整条循环走过的才给绿色；问法试过是中间档，用弱色描边
+   而不是绿色——差一步就是差一步，颜色上不许含糊。 */
+.guide-status.loop_walked {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.guide-status.questions_probed {
+  border-color: var(--line-strong);
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.guide-status-note {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+.guide-status-note.untried {
+  padding: 0.5rem 0.7rem;
+  border-left: 2px solid var(--stale);
+  background: var(--stale-bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--stale);
+}
+
+/* 七条问法各自的来处。来处那一行比问法弱一档，但必须在。 */
+.guide-questions {
+  margin: 0.3rem 0 0;
+  padding-left: 1.4rem;
+}
+
+.guide-questions li {
+  margin-bottom: 0.6rem;
+}
+
+.guide-question {
+  margin: 0;
+  line-height: var(--lh-body);
+}
+
+.guide-question-source {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+/* 装不进来的活。说清做不了什么，比让人自己撞上去省事。 */
+.guide-out {
+  margin: 0.3rem 0 0;
+  padding-left: 1.4rem;
+}
+
+.guide-out li {
+  margin-bottom: 0.5rem;
+}
+
+.guide-out-why {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-note);
+}
+
+/* 选模板时，没走查过的那份要当场说出来，别等人建完题目才发现。 */
+.untried-note {
+  padding: 0.45rem 0.6rem;
+  border-left: 2px solid var(--stale);
+  background: var(--stale-bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--stale);
+}
