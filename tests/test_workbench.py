@@ -86,7 +86,7 @@ class WorkbenchProjectionTest(unittest.TestCase):
         self.assertNotIn("C-002", json.dumps(body, ensure_ascii=False))
 
     def test_set_aside_dedupes_same_url_discarded_more_than_once(self) -> None:
-        # 同一条链接被排除两次时不能在
+        # 现场缺陷（docs/20 §6，2026-08-22 未修条）：同一条链接被排除两次会在
         # 「这轮不用的」抽屉里留下两条标题相同、状态各自独立的候选，像是有一条
         # 被谁换掉了。这里直接构造历史遗留的重复数据（不经过已经堵住根因的
         # 搜索路径），确认展示层会把它们并成一条；对象本身仍都保留，不删除。

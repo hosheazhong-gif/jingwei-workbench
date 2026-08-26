@@ -1,5 +1,5 @@
 :root {
-  /* 色板与字号层级集中定义；下方规则不再写死颜色和字号。 */
+  /* 色板与字号层级见 PRD 第 20.8 节。规则里不许再写死颜色和字号。 */
   --bg: #f7f7f5;
   --paper: #ffffff;
   --col: #ffffff;
@@ -27,7 +27,7 @@
 }
 
 /* hidden 必须真的隐藏。#bench 曾经用 ID 选择器写 display:flex，压过了浏览器
-   给 [hidden] 的 display:none，否则工作台会一直挂在首页下面。 */
+   给 [hidden] 的 display:none，于是工作台一直挂在首页下面（PRD 20.8）。 */
 [hidden] {
   display: none !important;
 }
@@ -204,7 +204,7 @@ body.col-dragging {
 }
 
 /* 四档按钮共用同一套尺寸。并排的两个按钮长得不一样大，是因为以前每档
-   各写各的 padding；现在尺寸只在这一处定义。 */
+   各写各的 padding；现在尺寸只在这一处定（PRD 20.8）。 */
 #export-word,
 button.primary,
 button.secondary,
@@ -493,7 +493,7 @@ body.col-dragging .split {
 }
 
 /* 「这条问题落在稿的哪一节」。还没定的用淡一档的字，但仍然写出来——
-   状态不能只靠「消失」表达。 */
+   状态不能只靠「消失」表达（PRD 20.8）。 */
 .question-target {
   margin-top: 0.3rem;
   font-size: var(--fs-meta);
@@ -547,7 +547,7 @@ body.col-dragging .split {
   margin-top: 0.75rem;
 }
 
-/* 附注一律使用 --fs-note，不在各处重复定义。 */
+/* 附注一律 --fs-note，不许各写各的（PRD 20.8）。 */
 .why,
 .hint {
   margin: 0.4rem 0 0;
@@ -1057,7 +1057,7 @@ button.group-heading.round-folder {
 }
 
 
-/* ── 三栏工作台的统一视觉基线 ── */
+/* ── 以下按 PRD 第 20.8 节的基线补齐，对应产品所有者 2026-08-23 的流水账 ── */
 
 /* 第 3 条：「这轮还没开始」跟本轮问题的其他框长得一样，分不出来。
    它是退回上一轮，属于本轮之外的动作，用虚线框和弱色单独成块。 */
@@ -1264,7 +1264,7 @@ body.mode-guide .home-split > .home-board {
   }
 }
 
-/* ── 模板介绍：只描述已安装模板，不是外部知识库 ── */
+/* ── 模板介绍：只描述已装进来的模板，不是外部知识库（PRD 20.10） ── */
 
 .guide-tabs {
   display: flex;
@@ -1669,7 +1669,7 @@ button.impact-jump:hover { color: var(--accent); }
   color: var(--accent);
 }
 
-.guide-status.questions_probed {
+.guide-status.walked_by_hand {
   border-color: var(--line-strong);
   background: var(--bg);
   color: var(--muted);

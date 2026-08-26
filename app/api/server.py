@@ -656,7 +656,7 @@ def dispatch_post(
             return status, {"error": message}
         if payload.get("save_to_folder"):
             # 存到题目文件夹是一次文件操作，不进账本；存不下也不该把
-            # 已经导出的内容吞掉，只把原因说出来。
+            # 已经导出的内容吞掉，只把原因说出来（PRD 20.9）。
             try:
                 saved = _save_export(repository, project_id, result)
                 result["saved_path"] = str(saved)
@@ -911,7 +911,7 @@ def dispatch_post(
 def _save_export(
     repository: SqliteRepository, project_id: str, export: dict[str, Any]
 ) -> Path:
-    """把导出顺手存一份到题目文件夹，受控副本保持不动。"""
+    """把导出顺手存一份到题目文件夹。受控副本不动（PRD 20.9）。"""
     from datetime import UTC, datetime
 
     with repository.connect() as connection:

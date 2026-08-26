@@ -8,8 +8,47 @@ _NUMBER = re.compile(
 )
 _YEAR = re.compile(r"^(?:19|20)\d{2}$")
 _ORG = re.compile(
-    r"[\u4e00-\u9fff]{2,16}(?:有限公司|股份有限公司|集团|产业园|管理局|委员会|研究院)"
+    r"[\u4e00-\u9fff]{2,16}"
+    r"(?:有限公司|股份有限公司|集团|产业园|管理局|委员会|研究院|研究所|证券"
+    r"|咨询|事务所|银行|基金|资本|协会|学会|大学|智库|研究中心)"
 )
+# 借来的权威：一个名字后面直接跟「预计／认为／显示…」。
+# 现场缺陷（docs/20 §6，2026-08-26）：原来只认「…有限公司／集团／研究院」这几个
+# 中文后缀，于是「麦肯锡的调研显示」「Gartner 据此认为」「IDC 预计」全部漏过。
+# **编造的机构归属比编造的数字更能骗人**——数字还会被数字清单标红，而一句
+# 「某某机构预计」看着就像已经有出处了。名字挂不上已挂原话，就得标出来。
+_ATTRIB = re.compile(
+    r"(?:据\s*)?"
+    r"([A-Z][A-Za-z0-9&.\-]{1,23}|[\u4e00-\u9fff]{2,12})"
+    r"\s*(?:的)?\s*(?:研究|调研|报告|数据|测算|团队)?\s*(?:据此|因此)?\s*"
+    r"(?:预计|认为|指出|显示|表示|预测|估计)"
+)
+# 名字里带这些字的，是句子不是机构名。宁可漏报也不要吵——一个老误报的
+# 提示，人两天就学会无视它，那比没有还糟。
+_NOT_A_NAME_CHAR = frozenset("是不而但也就只我你他她它们这那哪какой，。；：、（）()「」“”")
+# 这些词本身不是机构名，跟在它们后面的动词是叙述不是归属。
+_NOT_AN_ORG = frozenset(
+    "数据 报告 资料 材料 上述 本节 这一 该项 结果 分析 以上 内容 情况 记录 "
+    "研究 调研 测算 综上 因此 所以 我们 对方 各家 两家 三家 公开 "
+    "同一篇 同一页 另一篇 另一份 该数字 该报告 本轮 本季 本版 出处".split()
+)
+# 名字前面常粘着这些叙述词，粘上了就不是名字了。
+_NAME_PREFIX = ("同一篇", "同一页", "另一篇", "另一份", "该篇", "其中", "据")
+
+
+def _clean_org_name(raw: str) -> str:
+    """把捕获到的名字修干净；修不出像样的名字就返回空，宁可漏报。"""
+    name = (raw or "").strip()
+    if "的" in name:  # 「麦肯锡的调研」→「麦肯锡」
+        name = name.rsplit("的", 1)[0].strip()
+    for prefix in _NAME_PREFIX:
+        if name.startswith(prefix) and len(name) > len(prefix) + 1:
+            name = name[len(prefix):].strip()
+    if len(name) < 2 or name in _NOT_AN_ORG:
+        return ""
+    if any(char in _NOT_A_NAME_CHAR for char in name):
+        return ""
+    return name
 _SENTENCE = re.compile(r"[^。！？\n]+[。！？]?")
 # 「材料没说什么」这一类说法。它们本身有价值（尤其尽调），但同一个缺口反复说
 # 就是灌水。实测一节稿里这四个词加起来出现了 10 次。
@@ -52,20 +91,33 @@ def unsourced_numbers(text: str, claim_texts: list[str]) -> list[dict[str, Any]]
 
 
 def unsourced_orgs(text: str, claim_texts: list[str]) -> list[dict[str, Any]]:
-    """稿里的机构名若不在已挂主张中，标为无来源。"""
+    """稿里的机构名若不在已挂主张中，标为无来源。
+
+    两种都要认：一种是名字自带机构后缀（…研究院、…证券），另一种是
+    「某某预计／某某显示」这样把权威借过来的说法——后者更危险，因为它
+    读上去就像已经有出处了。
+    """
     joined = "\n".join(claim_texts)
     found: list[dict[str, Any]] = []
+    seen: set[tuple[int, int]] = set()
     for match in _ORG.finditer(text or ""):
         token = match.group(0)
         if token in joined:
             continue
+        seen.add((match.start(), match.end()))
         found.append(
-            {
-                "text": token,
-                "start": match.start(),
-                "end": match.end(),
-                "kind": "org",
-            }
+            {"text": token, "start": match.start(), "end": match.end(), "kind": "org"}
+        )
+    for match in _ATTRIB.finditer(text or ""):
+        token = _clean_org_name(match.group(1))
+        if not token or token in joined:
+            continue
+        span = (match.start(1), match.start(1) + len(token))
+        if any(a <= span[0] and span[1] <= b for a, b in seen):
+            continue
+        seen.add(span)
+        found.append(
+            {"text": token, "start": span[0], "end": span[1], "kind": "org"}
         )
     return found
 

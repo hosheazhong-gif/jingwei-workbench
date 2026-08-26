@@ -232,7 +232,7 @@ class ReportUiTest(unittest.TestCase):
         self.assertIn("/round-decision/draft", script)
         self.assertIn("回到当前轮", script)
         self.assertIn("renderLookbackDraft", script)
-        # 搜索前要提醒用户手里还有未归题的材料。
+        # 现场缺陷（docs/20 §6，2026-08-22 未修条）：搜之前不提醒手里还有未标材料
         self.assertIn("templatePicker", script)
         self.assertIn("template_key", script)
         self.assertIn("/templates", script)
@@ -296,7 +296,7 @@ class ReportUiTest(unittest.TestCase):
     def test_browser_script_is_not_python_syntax(self) -> None:
         script = (PROJECT_ROOT / "frontend/report/app.js").read_text(encoding="utf-8")
         # 走查状态要三处都露出来：介绍页标题旁、选模板的选项文字里、
-        # 以及选中尚未走查模板时当场给出的提示。
+        # 以及选中没走查过那份时当场给的提示（PRD 20.12）。
         for needle in (
             "guide-status",
             "loop_walked",
@@ -324,7 +324,7 @@ class ReportUiTest(unittest.TestCase):
         # 顶栏两个导出按钮必须同尺寸：那个按钮只有 id 没有 class 时，
         # 统一尺寸的规则命不中它，一大一小（流水账第 2 条）。
         self.assertIn("#export-word,\nbutton.primary,", css)
-        # 设计基线：色板和字号只在 :root 定义一次，规则里不写死。
+        # PRD 20.8 的设计基线：色板和字号只在 :root 定一次，规则里不许写死。
         for token in (
             "--bg: #f7f7f5",
             "--paper: #ffffff",
@@ -366,9 +366,9 @@ class ReportUiTest(unittest.TestCase):
         self.assertIn(".guide-status", css)
         # 三档各有各的样子：整条循环走过的才给绿色，问法试过是中间档。
         self.assertIn(".guide-status.loop_walked", css)
-        self.assertIn(".guide-status.questions_probed", css)
+        self.assertIn(".guide-status.walked_by_hand", css)
         self.assertIn(".untried-note", css)
-        # 研报标题可能很长且不带空格；
+        # 现场缺陷（docs/20 §6，2026-08-23）：真机上研报标题四十几个字又不带
         # 空格，出处那一列写成 flex: 0 0 auto 就把上下文挤成 0 宽、还捅出了
         # 面板右边。这两列都必须自己会缩、会省略。
         for block, must in (

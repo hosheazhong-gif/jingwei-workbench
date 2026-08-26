@@ -126,7 +126,7 @@ class ExcerptFromSnapshotTest(unittest.TestCase):
         )
 
     def test_pdf_snapshot_is_not_mistaken_for_html(self) -> None:
-        # 网页快照一律落盘成 snapshot.bin，
+        # 现场缺陷（docs/20 §6，2026-08-23）：网页快照一律落盘成 snapshot.bin，
         # `_content_type` 看后缀认不出来，又因为 kind == "web_page" 判成 HTML；
         # 于是 PDF 的二进制被当正文抽出一堆垃圾，长度过了门槛，两个键照给，
         # 点下去必然是死路。文件头必须先说话。

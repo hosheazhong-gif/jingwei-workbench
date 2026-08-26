@@ -18,7 +18,7 @@ def _norm(path: str) -> str:
 class RouteBannerTest(unittest.TestCase):
     """启动时打印的那张路由表不许比真实路由少。
 
-    路由表是手写的，曾经漏掉
+    现场缺陷（docs/20 §6，2026-08-23）：那张表是手写的，已经漏掉了
     `/templates`、`DELETE /sources/{id}`、`/projects/{id}/brief`。
     开机第一眼看到的东西说了假话，比没有这张表更糟。
     """

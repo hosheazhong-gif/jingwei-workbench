@@ -55,7 +55,7 @@ class ExportFolderTest(unittest.TestCase):
         self.assertEqual(path.read_text(encoding="utf-8"), "正文")
 
     def test_export_never_overwrites_an_existing_file(self) -> None:
-        # 上一版可能已经发出去了，导出不许覆盖它。
+        # 上一版可能已经发出去了，导出不许盖掉它（PRD 20.9）。
         names = []
         for _ in range(3):
             names.append(

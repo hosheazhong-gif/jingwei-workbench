@@ -47,7 +47,7 @@ class VerticalSliceTest(unittest.TestCase):
             versions, {"0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8"}
         )
         # 0008 是数据迁移：旧库里绑着单个案子名的 template_key 被改成通用 key，
-        # 题目名称、稿、主张核验状态和来源哈希都保持不变。
+        # 题目名称、稿、主张核验状态、来源哈希都不动（PRD 20.6）。
         self.assertEqual(
             project["template_key"], "industry_chain_analysis_presales"
         )

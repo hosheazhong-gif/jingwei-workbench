@@ -54,7 +54,7 @@ def _project_question(
         "target_block_id": target_block_id,
         "target_section": target_section,
         "target_section_label": target_section or "还没定落在哪一节",
-        # 第一层只显示短名，点开后再看完整问题。
+        # 第一层只显示短名，点开才看整句（PRD 10.2）
         "label": row.get("label"),
         "short_label": row.get("short_label") or row["question"],
         "why_it_matters": row["enough_for_now"],
@@ -282,7 +282,7 @@ def _material_since_last_adopted(
 ) -> dict[str, int]:
     """每一节自从上次收下正文之后，又挂上了几条原话。
 
-    补料后，受影响的已收段落要标为过时。旧的 `stale` 只在来源被
+    PRD M7 第 5 条要求补料后受影响的已收节能标过时。旧的 `stale` 只在来源被
     新文件替换或人手动标过时才亮，新挂原话不算，于是人挂完材料看不出稿该动。
     这里只数，不改稿、不改核验。
     """
@@ -332,7 +332,7 @@ def _round_sections(
 ) -> dict[int, list[dict[str, Any]]]:
     """每一轮收下的是哪一版稿。
 
-    段落对象只有一套，轮次记在版本上。这里按轮取那一轮最后一次
+    段落对象只有一套（PRD 20.1），轮次记在版本上。这里按轮取那一轮最后一次
     收下的正文，供回看用；只读投影，不复制第二套结论。
     """
     with repository.connect() as connection:

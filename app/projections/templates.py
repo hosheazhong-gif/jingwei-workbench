@@ -14,7 +14,7 @@ _LIMITATION = (
     "介绍里的样例是说明这类活长什么样的静态文案，不是材料，不能当证据用。"
 )
 
-# 这些工作类型目前无法可靠装进固定循环，原因要对用户写清楚。
+# 这几类活现在装不进这条循环，原因写清楚（docs/24 §1.4 的调研结论）。
 # 说清做不了什么，比让人自己撞上去省事：使用者不一定看得出边界在哪。
 OUT_OF_SCOPE = (
     {
@@ -77,7 +77,7 @@ def build_template_list_projection() -> dict[str, Any]:
         template for template in load_templates().values() if template.listed
     ]
     # 默认的排头，验得深的排在验得浅的前面：人不细看也先碰到验过的那几个。
-    order = {"loop_walked": 0, "questions_probed": 1, "skeleton": 2}
+    order = {"loop_walked": 0, "walked_by_hand": 1, "skeleton": 2}
     templates.sort(
         key=lambda item: (
             item.key != DEFAULT_TEMPLATE_KEY,
@@ -94,7 +94,7 @@ def build_template_list_projection() -> dict[str, Any]:
                 "brief_prompt": template.brief_prompt or "",
                 "question_hint_count": len(list(template.recommended_question_labels())),
                 "is_default": template.key == DEFAULT_TEMPLATE_KEY,
-                # 介绍页使用的纯文案，不影响模型如何理解材料。
+                # 介绍页要的东西。纯文案，不影响模型怎么理解材料（PRD 20.10）。
                 "intro": template.intro,
                 "when_to_use": list(template.when_to_use),
                 "when_not_to_use": list(template.when_not_to_use),

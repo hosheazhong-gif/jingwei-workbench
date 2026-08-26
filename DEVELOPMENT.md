@@ -13,6 +13,12 @@
 
 运行链路是 `frontend → local HTTP API → application services → SQLite`。模板只定义问题提示、步骤和边界，不绕过应用层写账本。
 
+## 代码里的 `PRD 20.x` / `docs/20 §6` 是什么
+
+仓库里的注释和测试会指向 `PRD 第 20.x 节`、`docs/14`、`docs/20 §6`。**那些是项目的内部决策记录，包含真实项目内容，不进版本库**（见 `.gitignore`）。
+
+保留这些指路是有意的：这个产品本身要求「每条结论挂得住出处」，代码里的每条规矩也一样——**规矩为什么长这样，必须指得回它是哪次裁定的结果**。外部贡献者读不到那些文档，但注释本身已经把理由写在原地了，指路只是给维护者用的书签。改代码时不要把它们删掉。
+
 ## 本地运行
 
 ```powershell
@@ -91,10 +97,35 @@ PyInstaller 只能为当前操作系统构建可执行文件，因此 Windows �
 
 ## 数据兼容
 
-- 当前应用版本：0.1.1
+- 当前应用版本：0.1.2
 - 当前数据库 schema：0.8
 - 不要修改已经发布的迁移文件；新增 schema 变更必须添加新的顺序迁移。
 - 程序启动时自动迁移用户数据库。任何迁移都要补充旧库升级测试。
+
+## 发布一个新版本
+
+版本号只写在两处，必须一致：`pyproject.toml` 的 `version` 和 `app/__init__.py` 的 `__version__`。
+Windows 包名和 Release 标题都从 `app.__version__` 取。
+
+改完版本号并更新 `CHANGELOG.md` 之后：
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests
+git add -A
+git commit -m "发布 0.1.2"
+git push
+git tag v0.1.2
+git push origin v0.1.2
+```
+
+**推标签就够了。** `.github/workflows/release.yml` 监听 `v*` 标签，会在 GitHub 的 Windows 机器上自动构建 EXE、跑成品冒烟测试、生成 ZIP 与 SHA-256，然后建好 Release 并上传附件。本地不需要装 PyInstaller，也不需要自己跑构建脚本。
+
+进度在仓库的 Actions 页面看。构建失败时 Release 不会创建——修好之后删掉旧标签重推：
+
+```powershell
+git tag -d v0.1.2
+git push origin :refs/tags/v0.1.2
+```
 
 ## 发布检查
 

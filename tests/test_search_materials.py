@@ -301,7 +301,7 @@ class SearchMaterialsTest(unittest.TestCase):
         self.assertEqual(len(listing["candidates"]), 1)
 
     def test_discarded_url_is_not_recaptured_as_a_new_duplicate(self) -> None:
-        # 一条链接被「这轮不用」之后，
+        # 现场缺陷（docs/20 §6，2026-08-22 未修条）：一条链接被「这轮不用」之后，
         # 再搜一次会把同一网址当成没见过，重新收进一条新候选；两条各自独立地
         # 被排除后，「这轮不用的」抽屉里就会看到两条标题相同的行，像哪条被换掉了。
         searcher = FakeSearchAdapter(

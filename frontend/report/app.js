@@ -60,7 +60,7 @@
   const home = document.getElementById("home");
   const homeBoard = document.getElementById("home-board");
   const homeCreate = document.getElementById("home-create");
-  // 模板清单只读一次；选定后不再更换（模板影响拆问题时的提示，
+  // 模板清单只读一次；选定后不再更换（PRD：模板影响的是拆问题时的提示，
   // 中途换模板会让已收下的问题和新提示对不上）。
   let templateChoices = null;
   let templateDefaultKey = null;
@@ -72,7 +72,7 @@
   const homeNew = document.getElementById("home-new");
   const homeGuide = document.getElementById("home-guide");
   const guideRoot = document.getElementById("guide");
-  // 模板介绍页只描述已经安装的模板，不是外部知识库。
+  // 模板介绍页。只描述已经装进来的模板，不是外部知识库（PRD 20.10）。
   let guideOpen = false;
   let guideKey = null;
   const homeTidy = document.getElementById("home-tidy");
@@ -981,7 +981,7 @@
     items.forEach(function (item) {
       const open = selectedQuestionId === item.id;
       const editing = editingQuestionId === item.id;
-      // 第一层只留题目和进度；「这轮先不用 / 改这条」点开后才显示。
+      // 第一层只留题目和进度；「这轮先不用 / 改这条」点开这一条才出来（PRD 10.2）
       const actions = [];
       if (open && item.can_defer) {
         actions.push(
@@ -2821,7 +2821,7 @@
           renderMaterials();
         },
       }, [text(item.title)]),
-      // 第一层只留名字，点开后再显示出处、链接和操作按钮。
+      // 第一层只留名字。出处、链接、按钮点开这份才出来（PRD 10.2）。
       current && item.question_label
         ? el("p", { className: "why" }, [
             text("对应：" + (item.question_short_label || item.question_label)),
@@ -3570,7 +3570,7 @@
   }
 
   function downloadWord(exporterKey, doneMessage) {
-    // 顺手在题目文件夹里留一份，同时保持受控副本不动。
+    // 顺手在题目文件夹里留一份。受控副本不动（PRD 20.9）。
     writeJson(
       "/projects/" + encodeURIComponent(projectId) + "/exports/" + (exporterKey || "word"),
       { save_to_folder: true }

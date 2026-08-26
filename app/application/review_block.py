@@ -536,7 +536,7 @@ def _insert_revision(
 def _current_round(connection: Any, block_id: str) -> int:
     """这一版是第几轮收下的。
 
-    一篇稿只保留一套段落对象，修订按轮次标记，不做每轮一套稿。段落对象仍
+    PRD 第 20.1 节裁定：一篇稿，修订按轮次标记，不做每轮一套稿。段落对象仍
     只有一套，轮次记在版本上，所以补料重写不会把上一轮交出去的那一版弄丢。
     """
     row = connection.execute(

@@ -96,7 +96,7 @@ class ExtensionSeamTest(unittest.TestCase):
 
     def test_demo_template_and_plain_text_exporter_have_no_synthetic_terms(self) -> None:
         demo_text = DEMO_TEMPLATE.read_text(encoding="utf-8")
-        # 默认模板不应带单个案子的词，保持为可复用的通用模板。
+        # 默认模板也不许再带单个案子的词：PRD 20.6 把它从「清湖低信息售前研究」
         # 改名成通用的「产业链分析」，名字和问法都不能再绑死在一个案子上。
         default_text = DEFAULT_TEMPLATE.read_text(encoding="utf-8")
         exporter_text = (
@@ -112,8 +112,8 @@ class ExtensionSeamTest(unittest.TestCase):
             self.assertNotIn(term, registry_text)
 
     def test_default_template_is_the_industry_chain_framework(self) -> None:
-        # 默认模板保持已验证的四节问法与证据纪律，
-        # 同时保留「研究对象与边界」（原产业识别）
+        # PRD 20.6：默认模板 = P-004 已验证的四节问法 + 清湖那条证据纪律，
+        # 再按 docs/00 §4.3 对原七层的审计补回「研究对象与边界」（原产业识别）
         # 和「区位与本地条件」（原本地基础层）。这七条会被 round_questions 当
         # template_hints 发给模型，不是摆设，所以内容改动必须有人看见。
         template = load_template("industry_chain_analysis_presales")
@@ -128,7 +128,7 @@ class ExtensionSeamTest(unittest.TestCase):
                 any(keyword in item for item in labels),
                 f"默认模板的问题提示里应该有「{keyword}」这一条",
             )
-        # 产业图谱不单列成一条，避免和产业链的边界重叠；
+        # 产业图谱不单列成一条（docs/00 §4.2 审计：图谱与产业链边界不清），
         # 它的实质并进产业链那一条：环节、参与者、价值被谁拿走。
         chain = next(item for item in labels if "产业链" in item)
         self.assertIn("参与者", chain)
@@ -137,7 +137,7 @@ class ExtensionSeamTest(unittest.TestCase):
         # 提示要把人推向现场和客户，而不是推向再搜一次。
         local = next(item for item in labels if "区位" in item)
         self.assertIn("自己", local)
-        # 延链机会不进模板：证据不够时
+        # 延链机会不进模板（docs/00 §4.2 第 5 条 + 清湖 F-002）：证据不够时
         # 不许在拆问题阶段就诱导模型去想「该往哪延伸」。
         for item in labels:
             self.assertNotIn("延链", item)
@@ -148,7 +148,7 @@ class ExtensionSeamTest(unittest.TestCase):
         self.assertNotIn(
             "case_specific_low_info_presales",
             load_templates(),
-            "旧模板还在：请删掉 app/templates/synthetic/ 整个目录",
+            "旧模板还在：请删掉 app/templates/qinghu/ 整个目录（PRD 20.6 改名后它是残留）",
         )
 
     def test_commercial_dd_desk_template_is_a_second_selectable_type(self) -> None:
@@ -172,7 +172,7 @@ class ExtensionSeamTest(unittest.TestCase):
         self.assertIn("访谈", template.brief_prompt or "")
 
     def test_every_listed_template_explains_itself(self) -> None:
-        # 介绍页只描述已经安装的模板，内容必须对得上这个模板。
+        # 介绍页只描述已经装进来的模板（PRD 20.10）。内容必须对得上这个模板
         # 真实的问法，不许写套话；样例必须自己声明不是材料。
         listing = build_template_list_projection()
         for item in listing["templates"]:
@@ -186,7 +186,7 @@ class ExtensionSeamTest(unittest.TestCase):
                 self.assertTrue(step["title"], item["key"])
                 self.assertTrue(step["done_when"], item["key"])
             self.assertIn("不是材料", item["example"]["note"])
-            # 样例稿模拟工作台的真实输出，那里没有
+            # 现场缺陷（docs/20 §6）：样例稿模拟的是工作台的真实输出，那里没有
             # Markdown。星号留在里面会让人以为稿里可以写记号。
             for key in ("brief", "material", "draft"):
                 self.assertNotIn(
@@ -202,7 +202,7 @@ class ExtensionSeamTest(unittest.TestCase):
             self.assertEqual(
                 item["question_labels"], list(template.recommended_question_labels())
             )
-        # 模板要公开走查状态和问法来处，方便后来者判断可信边界：
+        # 走查状态和问法来处（PRD 20.12）。模板不止给写它的人用：
         # 没走查过的必须自己说出来，七条问法必须条条说得出来处。
         for item in listing["templates"]:
             # 三档不是两档：「问法试过」和「整条循环走过」不许混成一个已走查。
@@ -212,8 +212,14 @@ class ExtensionSeamTest(unittest.TestCase):
             )
             self.assertTrue(item["status_note"].strip(), item["key"])
             if item["verification"] != "loop_walked":
-                # 没走完整条循环的，必须自己在说明里承认还差哪一步
-                self.assertIn("还没", item["status_note"], item["key"])
+                # 没走完整条循环的，必须自己在说明里承认还差哪一步。
+                # 认「还没」太松：那两个字可能出现在任何一句里。改成认
+                # 「差的到底是什么」——模型那一步没验，就必须写出来。
+                note = item["status_note"]
+                self.assertTrue(
+                    "模型" in note and ("还没验" in note or "还没走" in note or "没试过" in note),
+                    f"{item['key']} 的状态说明没写清还差哪一步：{note[:40]}",
+                )
             self.assertEqual(
                 len(item["questions"]), len(item["question_labels"]), item["key"]
             )
@@ -222,7 +228,7 @@ class ExtensionSeamTest(unittest.TestCase):
                 self.assertNotEqual(row["source"], "没注明来处", item["key"])
                 # 来处要说清是哪来的，不许拿问法自己充数
                 self.assertNotEqual(row["source"], row["label"], item["key"])
-            # 删掉问法时也必须同步更新「什么时候用它」，
+            # 现场缺陷（docs/20 §6）：删了一条问法，却忘了改「什么时候用它」，
             # 页面上还写着那条已经不存在的证据来源。介绍和问法必须对得上。
             hay = "".join(item["question_labels"])
             for word in ("招聘", "问卷", "访谈"):
@@ -235,7 +241,7 @@ class ExtensionSeamTest(unittest.TestCase):
             for term in FORBIDDEN_TERMS:
                 self.assertNotIn(term, blob, f"{item['key']} 里出现了案子名 {term}")
         # 验得深的排在验得浅的前面：人不细看也先碰到验过的那几个。
-        rank = {"loop_walked": 0, "questions_probed": 1, "skeleton": 2}
+        rank = {"loop_walked": 0, "walked_by_hand": 1, "skeleton": 2}
         ranks = [rank[item["verification"]] for item in listing["templates"]]
         self.assertEqual(ranks, sorted(ranks))
         # 试问法时撞出来的来源陷阱要写在页面上：这条循环的硬门槛只管
@@ -257,7 +263,7 @@ class ExtensionSeamTest(unittest.TestCase):
         self.assertFalse(load_template("demo_market_scan").listed)
 
     def test_template_list_puts_the_system_default_first_and_marks_it(self) -> None:
-        # 投影不能只按 key 字母排序，
+        # 现场缺陷（docs/20 §6，2026-08-23）：投影按 key 字母排序，
         # commercial_dd_desk 排到了前面，浏览器就默认选中它——人不动下拉框
         # 会静默拿到另一套问法，而不是系统真正的默认模板。
         listing = build_template_list_projection()

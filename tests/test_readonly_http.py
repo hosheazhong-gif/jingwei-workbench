@@ -65,7 +65,7 @@ class ReadOnlyHttpApiTest(unittest.TestCase):
         # 默认模板排第一并标出来，否则界面会默认选中排序第一个。
         self.assertEqual(keys[0], payload["default_key"])
         # 这个接口不读任何项目数据，也不暴露内部字段。介绍页要的三个字段
-        # intro / steps / example 是纯展示文案，修改它们不影响模型输出。
+        # （intro / steps / example）是纯文案，换掉值模型输出不变（PRD 20.10）。
         for item in payload["templates"]:
             self.assertEqual(
                 set(item),
@@ -91,7 +91,7 @@ class ReadOnlyHttpApiTest(unittest.TestCase):
                 },
             )
             # 走查状态和问法来源：没走查过的不许在页面上装成走查过的，
-            # 问法来处条数必须和问法条数一致。
+            # 七条问法的来处条数必须跟问法条数对得上（PRD 20.12）。
             self.assertIn(item["verification"], VERIFICATION_LEVELS)
             self.assertEqual(item["status_label"], VERIFICATION_LEVELS[item["verification"]])
             self.assertEqual(item["loop_walked"], item["verification"] == "loop_walked")
