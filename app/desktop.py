@@ -7,27 +7,29 @@ import os
 import sys
 import tempfile
 import webbrowser
+from threading import Event
+from time import monotonic
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
 from app import __version__
+from app.projections.templates import build_template_list_projection
 from app.adapters.sqlite_repository import SqliteRepository
-from app.api.server import ReadOnlyHttpServer
+from app.api.server import ReadOnlyHttpServer, register_desktop_controller
 from app.local_env import load_local_env
 
 
 APP_TITLE = "经纬咨询决策工作台"
 DEFAULT_PORT = 8765
 _MUTEX_NAME = "Local\\JingweiConsultingWorkbench"
+# 页面 30 秒一拍；后台标签会被浏览器压到 60 秒一拍。三分钟够漏两三拍。
+_IDLE_EXIT_SECONDS = 180
+_HEARTBEAT_POLL_SECONDS = 5
 _ERROR_ALREADY_EXISTS = 183
-_IDYES = 6
-_IDNO = 7
 _MB_OK = 0x00000000
-_MB_YESNOCANCEL = 0x00000003
 _MB_ICONERROR = 0x00000010
-_MB_ICONINFORMATION = 0x00000040
 
 
 @dataclass(frozen=True)
@@ -157,6 +159,7 @@ def run_smoke_test(report_path: Path | None = None) -> dict[str, Any]:
             },
         )
         project_id = str(created["project_id"])
+        expected_templates = len(build_template_list_projection()["templates"])
         export_status, exported = _post_json(
             server.origin + f"/projects/{project_id}/exports/word",
             {"save_to_folder": True},
@@ -165,7 +168,10 @@ def run_smoke_test(report_path: Path | None = None) -> dict[str, Any]:
         result = {
             "ok": bool(
                 home_ok
-                and len(templates) == 7
+                # 别写死数字：每加一个模板就炸一次，还炸得没道理。
+                # 装包真正的风险是模板 JSON 没被打进去——那样数量会变 0。
+                and expected_templates > 0
+                and len(templates) == expected_templates
                 and settings_ok
                 and create_status == 201
                 and export_status == 200
@@ -187,12 +193,34 @@ def run_smoke_test(report_path: Path | None = None) -> dict[str, Any]:
     return result
 
 
+def _running_version() -> str | None:
+    """问一下已经在跑的那个是哪一版。问不到就返回 None，不猜。"""
+    try:
+        with urlopen(f"http://127.0.0.1:{DEFAULT_PORT}/app/info", timeout=2) as response:
+            return str(json.loads(response.read().decode("utf-8")).get("version") or "") or None
+    except Exception:
+        return None
+
+
 def _run_controller() -> int:
     mutex_handle: int | None = None
     server: ReadOnlyHttpServer | None = None
     try:
         mutex_handle, already_running = _acquire_windows_mutex()
         if already_running:
+            # 已经有一个在跑。**先问它是哪一版**——产品所有者踩过这一条：
+            # 旧 exe 还占着端口，从源码启动的新进程走到这儿只是打开浏览器，
+            # 页面上是旧版服务的内容，人完全看不出来（docs/20 §6 2026-08-26）。
+            running = _running_version()
+            if running and running != __version__:
+                _message_box(
+                    f"已经有一个经纬在运行，它是 {running} 版；\n"
+                    f"你正要启动的是 {__version__} 版。\n\n"
+                    "两个版本不能同时用同一个端口。请先在已经打开的工作台页面上\n"
+                    "点右上角「退出经纬」，然后重新启动。",
+                    _MB_OK | _MB_ICONERROR,
+                )
+                return 3
             webbrowser.open(f"http://127.0.0.1:{DEFAULT_PORT}/", new=1)
             return 0
 
@@ -207,27 +235,28 @@ def _run_controller() -> int:
                 _MB_OK | _MB_ICONERROR,
             )
             return 2
+        # 退出、打开数据目录、报平安，全都交给页面。桌面进程只安静地等着。
+        #
+        # 原来这里是个 `while True` 的 Windows 弹窗，**那个弹窗就是程序的生命线**：
+        # 「是」重开页面、「否」开数据目录、「取消」break 掉循环 → 服务器停掉。
+        # 于是让弹窗消失的唯一办法，正好是那个杀掉经纬的选项——产品所有者第一次
+        # 用就踩到了（现场缺陷，docs/20 §6 2026-08-26）。
+        shutdown = Event()
+        last_beat = [monotonic()]
+        register_desktop_controller(
+            data_dir=str(paths.data_dir),
+            on_heartbeat=lambda: last_beat.__setitem__(0, monotonic()),
+            on_quit=shutdown.set,
+            on_open_folder=lambda: _open_folder(paths.data_dir),
+        )
         server.start()
         url = server.origin + "/"
         webbrowser.open(url, new=1)
-        if sys.platform != "win32":
-            server._thread.join()
-            return 0
-        while True:
-            action = _message_box(
-                "经纬正在本机运行，工作台已经在默认浏览器中打开。\n\n"
-                f"本机地址：{url}\n"
-                f"数据目录：{paths.data_dir}\n\n"
-                "选择“是”：重新打开工作台\n"
-                "选择“否”：打开数据与导出目录\n"
-                "选择“取消”：安全退出经纬",
-                _MB_YESNOCANCEL | _MB_ICONINFORMATION,
-            )
-            if action == _IDYES:
-                webbrowser.open(url, new=1)
-            elif action == _IDNO:
-                _open_folder(paths.data_dir)
-            else:
+        # 页面每隔半分钟报一次平安。关掉页面，这里等不到心跳就自己退出，
+        # 不留一个没有界面的孤儿进程。浏览器把后台标签的定时器压到一分钟一次，
+        # 所以窗口留到三分钟，够漏掉两三拍。
+        while not shutdown.wait(timeout=_HEARTBEAT_POLL_SECONDS):
+            if monotonic() - last_beat[0] > _IDLE_EXIT_SECONDS:
                 break
         return 0
     except Exception as exc:

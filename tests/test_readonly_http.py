@@ -88,6 +88,7 @@ class ReadOnlyHttpApiTest(unittest.TestCase):
                     "status_label",
                     "status_note",
                     "questions",
+                    "sample_briefs",
                 },
             )
             # 走查状态和问法来源：没走查过的不许在页面上装成走查过的，

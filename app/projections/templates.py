@@ -111,8 +111,19 @@ def build_template_list_projection() -> dict[str, Any]:
                 "loop_walked": template.verification == "loop_walked",
                 "status_note": template.status_note,
                 "questions": _questions_with_source(template),
+                "sample_briefs": list(template.sample_briefs),
             }
             for template in templates
+        ],
+        # 「哪句话最像你的活」——不确定选哪个时，先比句子再读介绍。
+        "chooser": [
+            {
+                "key": item.key,
+                "name": item.name,
+                "brief": item.sample_briefs[0] if item.sample_briefs else "",
+            }
+            for item in templates
+            if item.sample_briefs
         ],
         "out_of_scope": [dict(item) for item in OUT_OF_SCOPE],
         "source_traps": [dict(item) for item in SOURCE_TRAPS],

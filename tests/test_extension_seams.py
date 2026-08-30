@@ -211,14 +211,19 @@ class ExtensionSeamTest(unittest.TestCase):
                 item["status_label"], VERIFICATION_LEVELS[item["verification"]], item["key"]
             )
             self.assertTrue(item["status_note"].strip(), item["key"])
-            if item["verification"] != "loop_walked":
-                # 没走完整条循环的，必须自己在说明里承认还差哪一步。
-                # 认「还没」太松：那两个字可能出现在任何一句里。改成认
-                # 「差的到底是什么」——模型那一步没验，就必须写出来。
-                note = item["status_note"]
+            # 没走完整条循环的，必须自己在说明里承认还差哪一步。
+            # 认「还没」太松：那两个字可能出现在任何一句里。每一档各自要说清
+            # 差的到底是什么，不许含糊成一句「还没弄好」。
+            note = item["status_note"]
+            if item["verification"] == "walked_by_hand":
                 self.assertTrue(
-                    "模型" in note and ("还没验" in note or "还没走" in note or "没试过" in note),
-                    f"{item['key']} 的状态说明没写清还差哪一步：{note[:40]}",
+                    "模型" in note and ("还没验" in note or "还没走" in note),
+                    f"{item['key']} 没写清差的是模型那一步：{note[:40]}",
+                )
+            elif item["verification"] == "skeleton":
+                self.assertIn(
+                    "还没试过", note,
+                    f"{item['key']} 是骨架却没说自己没试过：{note[:40]}",
                 )
             self.assertEqual(
                 len(item["questions"]), len(item["question_labels"]), item["key"]

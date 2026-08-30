@@ -139,6 +139,65 @@ def restore_research_question(
     )
 
 
+def remove_research_question(
+    repository: SqliteRepository,
+    question_id: str,
+) -> dict[str, Any]:
+    """去掉一条没挂任何材料的问题。挂了材料的拒绝，并说清挂着几份。
+
+    照搬 `remove_source` 立下的规矩（PRD 20.9 之后那条现场缺陷）：**没挂东西的
+    可以真去掉，挂了东西的拒绝并说明理由。** 原来问题只能「这轮先不用」，
+    于是拆错一次那条问题就永远躺在抽屉里，底下的材料也跟着赖着——
+    产品所有者做「AIGC 有哪些新兴公司」时真踩到了：第一条问题拆歪，
+    后面搜回来的材料全跟着歪，却没有任何清理手段。
+
+    为什么挂了材料就不许删：材料的「归到哪条问题」是人手工点的，删掉问题会让
+    那批材料悄悄退回「还没标对应问题」，人不会收到提示，下一轮又会重新捡起来。
+    先把材料改归到别的问题、或者把材料本身去掉，再回来删这条。
+    """
+    project_id, _row = _question_row(repository, question_id)
+    with repository.connect() as connection:
+        blockers = []
+        attached = connection.execute(
+            "SELECT COUNT(*) FROM sources WHERE research_question_id = ?",
+            (question_id,),
+        ).fetchone()[0]
+        if attached:
+            blockers.append(str(attached) + " 份材料")
+        candidates = connection.execute(
+            "SELECT COUNT(*) FROM candidate_sources WHERE research_question_id = ?",
+            (question_id,),
+        ).fetchone()[0]
+        if candidates:
+            blockers.append(str(candidates) + " 条网页候选")
+        row = connection.execute(
+            "SELECT question, label FROM research_questions WHERE id = ?",
+            (question_id,),
+        ).fetchone()
+    if blockers:
+        raise QuestionProgressError(
+            "这条问题上还归着 " + "、".join(blockers) + "，不能去掉。"
+            "先把材料改归到别的问题，或者把材料本身去掉，再回来删这条。"
+            "也可以直接点「这轮先不用」，把它收起来。"
+        )
+    name = str((row["label"] if row else "") or (row["question"] if row else "") or question_id)
+    with repository.transaction() as connection:
+        connection.execute(
+            "DELETE FROM research_questions WHERE id = ?", (question_id,)
+        )
+    workbench = build_workbench_projection(repository, project_id)
+    return {
+        "question_id": question_id,
+        "workbench": workbench,
+        "brief_projection": build_brief_projection(repository, project_id),
+        "confirmation": {
+            "message": "已去掉「" + name[:20] + "」。核验未改，给经理的稿未改。",
+            "record_kind": "remove_question",
+            "current_text_unchanged": True,
+        },
+    }
+
+
 def set_question_target_block(
     repository: SqliteRepository,
     question_id: str,

@@ -11,6 +11,7 @@ from threading import Thread
 from typing import Any
 from urllib.parse import unquote, urlparse
 
+from app import __version__
 from app.local_serve import is_address_in_use, recycle_jingwei_listeners
 from app.adapters.local_source import MAX_UPLOAD_BYTES
 from app.api.multipart import MultipartError, parse_multipart_form
@@ -61,6 +62,7 @@ from app.application.question_progress import (
     restore_research_question,
     set_question_progress,
     set_question_target_block,
+    remove_research_question,
 )
 from app.application.round_questions import (
     RoundQuestionError,
@@ -110,6 +112,10 @@ from app.model_settings import (
 
 _PROJECTS_PATH = re.compile(r"^/projects$")
 _TEMPLATES_PATH = re.compile(r"^/templates$")
+_APP_INFO_PATH = re.compile(r"^/app/info$")
+_APP_HEARTBEAT_PATH = re.compile(r"^/app/heartbeat$")
+_APP_QUIT_PATH = re.compile(r"^/app/quit$")
+_APP_FOLDER_PATH = re.compile(r"^/app/data-folder$")
 _MODEL_SETTINGS_PATH = re.compile(r"^/settings/model$")
 _MODEL_SETTINGS_TEST_PATH = re.compile(r"^/settings/model/test$")
 _PROJECT_ITEM_PATH = re.compile(r"^/projects/([^/]+)$")
@@ -118,6 +124,7 @@ _WORKBENCH_PATH = re.compile(r"^/projects/([^/]+)/workbench$")
 _BRIEF_PATH = re.compile(r"^/projects/([^/]+)/brief$")
 _QUESTION_PROGRESS_PATH = re.compile(r"^/research-questions/([^/]+)/progress$")
 _QUESTION_TARGET_PATH = re.compile(r"^/research-questions/([^/]+)/target-block$")
+_QUESTION_ITEM_PATH = re.compile(r"^/research-questions/([^/]+)$")
 _PROJECT_QUESTIONS_PATH = re.compile(r"^/projects/([^/]+)/research-questions$")
 _ROUND_QUESTION_DRAFT_PATH = re.compile(
     r"^/projects/([^/]+)/round-questions/draft$"
@@ -212,6 +219,32 @@ def _optional_draft_adapter():
     return resolved
 
 
+# 桌面版把自己登记在这里：页面要能显示版本、发心跳、点退出、打开数据目录。
+# `app.cli serve` 不登记，那几个接口就自然不存在（404），命令行行为一个字不变。
+_DESKTOP: dict[str, Any] = {}
+
+
+def register_desktop_controller(
+    *,
+    data_dir: str,
+    on_heartbeat: Any,
+    on_quit: Any,
+    on_open_folder: Any,
+) -> None:
+    _DESKTOP.update(
+        {
+            "data_dir": data_dir,
+            "on_heartbeat": on_heartbeat,
+            "on_quit": on_quit,
+            "on_open_folder": on_open_folder,
+        }
+    )
+
+
+def clear_desktop_controller() -> None:
+    _DESKTOP.clear()
+
+
 def dispatch_get(repository: SqliteRepository, path: str) -> tuple[int, dict[str, Any]]:
     """将只读路径映射到现有投影；不复制业务状态。"""
     if _PROJECTS_PATH.fullmatch(path):
@@ -219,6 +252,16 @@ def dispatch_get(repository: SqliteRepository, path: str) -> tuple[int, dict[str
 
     if _TEMPLATES_PATH.fullmatch(path):
         return 200, build_template_list_projection()
+
+    if _APP_INFO_PATH.fullmatch(path):
+        # 版本必须随时看得见。产品所有者踩过一次：旧 exe 还在跑着占着端口，
+        # 新进程发现「已经在运行」就只是打开浏览器，人看到的还是旧版页面，
+        # 却没有任何地方能看出这是哪一版（现场缺陷，docs/20 §6 2026-08-26）。
+        return 200, {
+            "version": __version__,
+            "desktop": bool(_DESKTOP),
+            "data_dir": _DESKTOP.get("data_dir"),
+        }
 
     if _MODEL_SETTINGS_PATH.fullmatch(path):
         try:
@@ -699,6 +742,23 @@ def dispatch_post(
             status = 404 if "不存在" in message else 400
             return status, {"error": message}
         return 200, result
+    if _APP_HEARTBEAT_PATH.fullmatch(path):
+        # 页面还开着就一直报平安。停了心跳，桌面版过几分钟自己退出——
+        # 不再用一个「按取消才消失、而取消就是关掉程序」的弹窗吊着命。
+        if not _DESKTOP:
+            return 404, {"error": "这不是桌面版运行方式"}
+        _DESKTOP["on_heartbeat"]()
+        return 200, {"ok": True}
+    if _APP_QUIT_PATH.fullmatch(path):
+        if not _DESKTOP:
+            return 404, {"error": "这不是桌面版运行方式"}
+        _DESKTOP["on_quit"]()
+        return 200, {"ok": True, "message": "经纬已退出。这个页面可以关掉了。"}
+    if _APP_FOLDER_PATH.fullmatch(path):
+        if not _DESKTOP:
+            return 404, {"error": "这不是桌面版运行方式"}
+        _DESKTOP["on_open_folder"]()
+        return 200, {"ok": True, "data_dir": _DESKTOP.get("data_dir")}
     target_match = _QUESTION_TARGET_PATH.fullmatch(path)
     if target_match:
         try:
@@ -954,6 +1014,17 @@ def dispatch_delete(
         try:
             result = remove_source(repository, unquote(source_match.group(1)))
         except SourceRemoveError as error:
+            message = str(error)
+            status = 404 if "不存在" in message else 400
+            return status, {"error": message}
+        return 200, result
+    question_match = _QUESTION_ITEM_PATH.fullmatch(path)
+    if question_match:
+        try:
+            result = remove_research_question(
+                repository, unquote(question_match.group(1))
+            )
+        except QuestionProgressError as error:
             message = str(error)
             status = 404 if "不存在" in message else 400
             return status, {"error": message}
@@ -1283,6 +1354,10 @@ def serve_readonly_api(
                 "routes": [
                     "GET /",
                     "GET /projects",
+                    "GET /app/info",
+                    "POST /app/heartbeat",
+                    "POST /app/quit",
+                    "POST /app/data-folder",
                     "POST /projects",
                     "POST /projects/{id}/review-shell",
                     "POST /projects/{id}/deliverable-blocks",
@@ -1320,6 +1395,7 @@ def serve_readonly_api(
                     "POST /deliverable-blocks/{id}/revisions",
                     "GET /sources/{id}/impact-preview",
                     "DELETE /sources/{id}",
+                    "DELETE /research-questions/{id}",
                     "GET /sources/{id}/snapshot",
                     "POST /sources/{id}/excerpt-draft",
                     "POST /sources/{id}/excerpt-draft/adopt",

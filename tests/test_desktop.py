@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from app.desktop import prepare_runtime, run_smoke_test, runtime_paths
+from app.projections.templates import build_template_list_projection
 
 
 class DesktopRuntimeTest(unittest.TestCase):
@@ -42,7 +43,11 @@ class DesktopRuntimeTest(unittest.TestCase):
                 result = run_smoke_test(report_path)
 
             self.assertTrue(result["ok"])
-            self.assertEqual(result["templates"], 7)
+            # 跟注册表比，不写死数字——加模板不该让封装测试红。
+            self.assertEqual(
+                result["templates"],
+                len(build_template_list_projection()["templates"]),
+            )
             self.assertTrue(result["model_settings"])
             self.assertTrue(Path(result["word_export"]).read_bytes().startswith(b"PK"))
             self.assertEqual(json.loads(report_path.read_text(encoding="utf-8")), result)

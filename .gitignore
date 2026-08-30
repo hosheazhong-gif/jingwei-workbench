@@ -14,9 +14,10 @@ dist/
 build/
 node_modules/
 .cursor/
-docs/
 CURSOR_HANDOFF.md
 
+# 客户材料。清湖是真实项目的原始文件，永远不进版本库。
+docs/private-samples/
 
 # 导出给人看的稿。不是账本，不进版本库。
 导出/

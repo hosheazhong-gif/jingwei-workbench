@@ -1734,3 +1734,56 @@ button.impact-jump:hover { color: var(--accent); }
   border-radius: 0 var(--radius) var(--radius) 0;
   color: var(--stale);
 }
+
+/* 「哪句话最像你的活」。选模板发生在读介绍之前，所以这一段摆在最上面，
+   而且要比介绍正文显眼——抽象定义分不出该用哪个，一句原话可以。 */
+.guide-chooser {
+  margin: 0.3rem 0 1.2rem;
+  padding: 0.6rem 0.9rem;
+  list-style: none;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.guide-chooser li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.28rem 0;
+}
+
+.guide-chooser li + li {
+  border-top: 1px solid var(--line);
+}
+
+.chooser-brief {
+  flex: 1 1 22rem;
+  min-width: 0;
+}
+
+button.chooser-jump {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* 每个模板自己的例题。跟正文分开，一眼能扫。 */
+.guide-samples {
+  margin: 0.3rem 0 0.9rem;
+  padding-left: 1.2rem;
+  color: var(--ink);
+}
+
+.guide-samples li {
+  margin-bottom: 0.2rem;
+  line-height: var(--lh-body);
+}
+
+/* 版本号跟在产品名后面。看得见，但不抢眼——它平时是背景信息，
+   只有「我现在跑的到底是哪一版」这种时候才需要。 */
+.app-version {
+  margin-left: 0.3rem;
+  color: var(--faint);
+  font-weight: 400;
+}

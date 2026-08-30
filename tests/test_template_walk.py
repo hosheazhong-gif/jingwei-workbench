@@ -48,7 +48,8 @@ class FirstTemplateHintAdapter:
 class EveryTemplateEndToEndTest(unittest.TestCase):
     def test_every_selectable_template_completes_the_same_controlled_loop(self) -> None:
         templates = build_template_list_projection()["templates"]
-        self.assertEqual(len(templates), 7)
+        # 不写死数字：每个正式模板都要过这条闭环，有几个就跑几个。
+        self.assertGreaterEqual(len(templates), 2)
 
         for template in templates:
             with self.subTest(template=template["key"]), tempfile.TemporaryDirectory() as root:

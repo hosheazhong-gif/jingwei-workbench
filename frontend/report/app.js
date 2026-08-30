@@ -67,8 +67,10 @@
   let templateNote = "";
   let templateOutOfScope = [];
   let templateSourceTraps = [];
+  let templateChooser = [];
   // 去掉材料要先点一次再确认一次，跟去掉题目同一个写法。
   let pendingSourceRemovalId = null;
+  let pendingQuestionRemovalId = null;
   const homeNew = document.getElementById("home-new");
   const homeGuide = document.getElementById("home-guide");
   const guideRoot = document.getElementById("guide");
@@ -255,6 +257,7 @@
         templateNote = (payload && payload.limitation) || "";
         templateOutOfScope = (payload && payload.out_of_scope) || [];
         templateSourceTraps = (payload && payload.source_traps) || [];
+        templateChooser = (payload && payload.chooser) || [];
         if (done) done();
       })
       .catch(function () {
@@ -262,6 +265,64 @@
         templateChoices = [];
         if (done) done();
       });
+  }
+
+  // 版本、退出、数据目录、心跳。桌面版靠心跳判断页面还开着——
+  // 原来靠一个「按取消才消失、而取消就是关掉经纬」的弹窗吊着命（PRD 20.17）。
+  const HEARTBEAT_MS = 30000;
+
+  function startAppRuntime() {
+    const versionSlot = document.getElementById("app-version");
+    const quitButton = document.getElementById("app-quit");
+    const folderButton = document.getElementById("app-data-folder");
+    readJson("/app/info")
+      .then(function (info) {
+        if (versionSlot && info && info.version) {
+          versionSlot.textContent = "v" + text(info.version);
+        }
+        if (!info || !info.desktop) return;
+        if (folderButton) {
+          folderButton.hidden = false;
+          folderButton.title = text(info.data_dir || "");
+          folderButton.onclick = function () {
+            writeJson("/app/data-folder", {})
+              .then(function () { showFlash("已打开数据目录。"); })
+              .catch(function (error) { showFlash(explainHttpError(error), true); });
+          };
+        }
+        if (quitButton) {
+          quitButton.hidden = false;
+          quitButton.onclick = function () { quitApp(quitButton); };
+        }
+        beat();
+        window.setInterval(beat, HEARTBEAT_MS);
+      })
+      .catch(function () {
+        // 取不到就什么都不显示：命令行方式跑的时候本来就没有这些。
+      });
+  }
+
+  function beat() {
+    writeJson("/app/heartbeat", {}).catch(function () {});
+  }
+
+  function quitApp(button) {
+    if (button.dataset.armed !== "1") {
+      button.dataset.armed = "1";
+      button.textContent = "确认退出？";
+      window.setTimeout(function () {
+        button.dataset.armed = "";
+        button.textContent = "退出经纬";
+      }, 4000);
+      return;
+    }
+    writeJson("/app/quit", {})
+      .then(function (payload) {
+        showFlash((payload && payload.message) || "经纬已退出。");
+        button.disabled = true;
+        button.textContent = "已退出";
+      })
+      .catch(function (error) { showFlash(explainHttpError(error), true); });
   }
 
   function renderGuide() {
@@ -286,6 +347,26 @@
       || templateChoices[0];
     guideKey = picked.key;
     const rows = [];
+    // 选模板发生在读介绍之前，所以对照表摆在页签上面。
+    // 产品所有者第一次真用时说「我是开发者都搞不懂了」——抽象定义分不出
+    // 该用哪个，一句像自己那道题的经理原话可以。
+    if ((templateChooser || []).length > 1) {
+      rows.push(el("p", { className: "guide-label" }, ["不确定选哪个？看哪句话最像你手上这道题"]));
+      rows.push(el("ul", { className: "guide-chooser" }, templateChooser.map(function (item) {
+        return el("li", {}, [
+          el("span", { className: "chooser-brief" }, ["「" + text(item.brief) + "」"]),
+          el("button", {
+            className: "linky chooser-jump",
+            type: "button",
+            onClick: function () {
+              guideKey = item.key;
+              renderGuide();
+              if (guideRoot) guideRoot.scrollTop = 0;
+            },
+          }, [text(item.name)]),
+        ]);
+      })));
+    }
     // 模板多于一个才摆切换条，只有一个时它是噪音。
     if (templateChoices.length > 1) {
       rows.push(
@@ -314,6 +395,12 @@
       rows.push(el("p", {
         className: "guide-status-note" + (picked.loop_walked ? "" : " untried"),
       }, emphasized(text(picked.status_note))));
+    }
+    if ((picked.sample_briefs || []).length) {
+      rows.push(el("p", { className: "guide-label" }, ["经理这么说的时候，用这个模板"]));
+      rows.push(el("ul", { className: "guide-samples" }, picked.sample_briefs.map(function (x) {
+        return el("li", {}, ["「" + text(x) + "」"]);
+      })));
     }
     if (picked.intro) {
       rows.push(el("div", { className: "guide-intro" }, paragraphs(picked.intro)));
@@ -1006,6 +1093,36 @@
             },
           }, ["改这条"])
         );
+        // 拆错了要能真去掉。跟材料同一套规矩：没归着材料的才删得掉，
+        // 归着材料的后端会拒绝并说清挂着几份（PRD 20.15）。
+        if (pendingQuestionRemovalId === item.id) {
+          actions.push(
+            el("button", {
+              className: "ghost",
+              type: "button",
+              onClick: function () { removeQuestion(item.id); },
+            }, ["确认去掉"]),
+            el("button", {
+              className: "quiet",
+              type: "button",
+              onClick: function () {
+                pendingQuestionRemovalId = null;
+                renderQuestions();
+              },
+            }, ["取消"])
+          );
+        } else {
+          actions.push(
+            el("button", {
+              className: "quiet",
+              type: "button",
+              onClick: function () {
+                pendingQuestionRemovalId = item.id;
+                renderQuestions();
+              },
+            }, ["去掉这条"])
+          );
+        }
       }
       nodes.push(
         el("div", { className: "question" + (open ? " current" : "") + (item.progress === "enough" ? " enough" : "") }, [
@@ -1044,6 +1161,20 @@
           el("div", { className: "question deferred" }, [
             el("span", { className: "question-title", title: text(item.question) }, [questionTitle(item)]),
             el("div", { className: "action-row" }, [
+              pendingQuestionRemovalId === item.id
+                ? el("button", {
+                    className: "ghost",
+                    type: "button",
+                    onClick: function () { removeQuestion(item.id); },
+                  }, ["确认去掉"])
+                : el("button", {
+                    className: "quiet",
+                    type: "button",
+                    onClick: function () {
+                      pendingQuestionRemovalId = item.id;
+                      renderQuestions();
+                    },
+                  }, ["去掉这条"]),
               el("button", {
                 className: "ghost",
                 type: "button",
@@ -3037,6 +3168,25 @@
       });
   }
 
+  function removeQuestion(questionId) {
+    writeDelete("/research-questions/" + encodeURIComponent(questionId))
+      .then(function (payload) {
+        pendingQuestionRemovalId = null;
+        if (payload.workbench) bench = payload.workbench;
+        if (selectedQuestionId === questionId) selectedQuestionId = null;
+        showFlash(payload.confirmation && payload.confirmation.message);
+        renderQuestions();
+        renderDraft();
+        renderMaterials();
+      })
+      .catch(function (error) {
+        // 归着材料的会被后端拒绝，把理由原样说给人听，不要吞掉。
+        pendingQuestionRemovalId = null;
+        showFlash(explainHttpError(error), true);
+        renderQuestions();
+      });
+  }
+
   function assignQuestionButton(item, isCandidate) {
     if (!selectedQuestionId || lookbackRound) return null;
     return el("button", {
@@ -3884,6 +4034,7 @@
   }
 
   initColumnSplit();
+  startAppRuntime();
   loadModelSettings().catch(function () { return null; });
   if (projectId) openProject(projectId);
   else showHome();

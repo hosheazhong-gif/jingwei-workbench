@@ -37,6 +37,10 @@ class ConfiguredTemplate:
     # 七条问法各自从哪来。条数必须和 recommended_question_labels 对得上——
     # 主张要挂来源是这个工具的规矩，模板自己的问法没道理例外。
     provenance: tuple[str, ...]
+    # 三五句「经理原话」。选模板最快的办法不是读介绍，是看哪句话最像自己手上
+    # 那道题——产品所有者第一次真用时说「我是开发者都搞不懂了」，就是因为
+    # 介绍页只讲抽象定义，没有可以直接比对的句子。
+    sample_briefs: tuple[str, ...]
     intro: str
     when_to_use: tuple[str, ...]
     when_not_to_use: tuple[str, ...]
@@ -94,6 +98,7 @@ def load_templates(root: Path | None = None) -> dict[str, ConfiguredTemplate]:
             verification=_verification(data),
             status_note=str(data.get("status_note") or ""),
             provenance=tuple(str(x) for x in (data.get("provenance") or ())),
+            sample_briefs=tuple(str(x) for x in (data.get("sample_briefs") or ())),
             intro=str(data.get("intro") or ""),
             when_to_use=tuple(str(x) for x in (data.get("when_to_use") or ())),
             when_not_to_use=tuple(str(x) for x in (data.get("when_not_to_use") or ())),
