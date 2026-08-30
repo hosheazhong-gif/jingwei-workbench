@@ -38,6 +38,7 @@ from app.application.review_block import (
 )
 from app.application.update_brief import update_brief
 from app.local_env import load_local_env
+from app.templates.registry import VERIFICATION_LEVELS, load_templates
 from app.projections.brief import build_brief_projection
 from app.projections.candidates import build_candidate_source_projection
 from app.projections.impact import build_impact_preview
@@ -56,6 +57,15 @@ def main() -> None:
     import_parser.add_argument("sample", type=Path)
     list_parser = subparsers.add_parser("list-projects", help="列出已建题目")
     list_parser.add_argument("--plain", action="store_true", help="只印题目名称")
+    templates_parser = subparsers.add_parser(
+        "list-templates",
+        help="列出可用模板的 key、名称和验到什么程度",
+    )
+    templates_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="连不在新建题目里列出的接缝演练模板一起印",
+    )
     create_parser = subparsers.add_parser("create-project", help="新建空白题目与任务边界")
     create_parser.add_argument("--name", required=True)
     create_parser.add_argument("--original-context", required=True)
@@ -272,6 +282,23 @@ def main() -> None:
                 "本机 8000 端口已被占用，而且占用它的不是经纬看稿进程。"
                 "请先关掉占用 8000 的程序，再运行 scripts\\serve_readonly.ps1。"
             )
+        return
+
+    if args.command == "list-templates":
+        # 建题目要填的是 template_key，而它写在 template.json 里，跟目录名不是一回事。
+        # 没有这个入口的时候，命令行用户只能猜目录名，猜错只得到「未找到模板 xxx」。
+        rows = [
+            {
+                "template_key": key,
+                "name": template.name,
+                "verification": template.verification,
+                "verification_label": VERIFICATION_LEVELS.get(template.verification, template.verification),
+                "listed": template.listed,
+            }
+            for key, template in sorted(load_templates().items())
+            if args.all or template.listed
+        ]
+        print(json.dumps({"templates": rows}, ensure_ascii=False, indent=2))
         return
 
     if args.command == "migrate":

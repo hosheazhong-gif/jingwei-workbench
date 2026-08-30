@@ -12,6 +12,12 @@ MAX_NEW_CANDIDATES = 8
 MAX_QUERY_CHARS = 80
 MAX_NOTE_CHARS = 180
 
+# 第一条出结果的检索词之后就不再搜后面几条——默认行为，省额度也省噪声。
+# 做 A/B 对照时要能临时关掉：不关的话固定流程永远只跑一条词，
+# 跟多轮代理比出来的差距有一半是"跑了几条词"，不是"换不换词"。
+# 只有 scripts/ab_search.py 会改它，改完立刻还原。
+STOP_AFTER_FIRST_PRODUCTIVE_QUERY = True
+
 
 class SearchMaterialsError(ValueError):
     pass
@@ -104,7 +110,7 @@ def search_project_materials(
                 raise SearchMaterialsError(str(error)) from error
             added.append(captured["candidate"])
             existing.add(url)
-        if added:
+        if added and STOP_AFTER_FIRST_PRODUCTIVE_QUERY:
             break
 
     _assert_unchanged(
